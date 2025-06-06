@@ -2,6 +2,7 @@ package com.example.kotsuexample.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -19,12 +20,18 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    // 이메일 조회 때 쓸 전화 번호 컬럼 추가
+    @Column(name = "phone_number", nullable = false, unique = true)
+    private String phoneNumber;
+
     @Column(nullable = false, unique = true)
     private String email;
 
     @Column(nullable = false)
     private String password;
 
+    // 닉네임은 중복을 허용하지 않도록!
+    @Column(unique = true)
     private String nickname;
 
     private String question;
@@ -40,7 +47,21 @@ public class User {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @JsonIgnore
-    @OneToMany(mappedBy = "leader", cascade = CascadeType.ALL)
-    private List<StudyRoom> studyRooms = new ArrayList<>();
+//    @JsonIgnore
+//    @OneToMany(mappedBy = "leader", cascade = CascadeType.ALL)
+//    private List<StudyRoom> studyRooms = new ArrayList<>();
+
+    @Builder
+    public User(Integer id, String phoneNumber, String email, String password, String nickname, String question, String answer, String profileImage, String profileMessage, LocalDateTime createdAt) {
+        this.id = id;
+        this.phoneNumber = phoneNumber;
+        this.email = email;
+        this.password = password;
+        this.nickname = nickname;
+        this.question = question;
+        this.answer = answer;
+        this.profileImage = profileImage;
+        this.profileMessage = profileMessage;
+        this.createdAt = createdAt;
+    }
 }
