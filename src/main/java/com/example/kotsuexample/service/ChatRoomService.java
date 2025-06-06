@@ -1,6 +1,6 @@
 package com.example.kotsuexample.service;
 
-import com.globalin.kotsukotsu.repository.ChatRoomRepository;
+import com.example.kotsuexample.repository.ChatRoomRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

@@ -1,14 +1,21 @@
 spring:
+  config:
+    activate:
+      on-profile: default
+    import: optional:file:.env[.properties]
   application:
     name: kotsu-example
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: ${LOCAL_ORACLE_URL}
-    username: ${LOCAL_ORACLE_USERNAME}
-    password: ${LOCAL_ORACLE_PASSWORD}
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
 
   data:
     redis:
       host: ${LOCAL_REDIS_HOST}
       port: ${LOCAL_REDIS_PORT}
+  jpa:
+    hibernate:
+      ddl-auto: update

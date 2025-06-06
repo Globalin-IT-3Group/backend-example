@@ -1,6 +1,6 @@
 package com.example.kotsuexample.service;
 
-import com.globalin.kotsukotsu.repository.NoteRepository;
+import com.example.kotsuexample.repository.NoteRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

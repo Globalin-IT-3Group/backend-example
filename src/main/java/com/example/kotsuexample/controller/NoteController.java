@@ -1,6 +1,6 @@
 package com.example.kotsuexample.controller;
 
-import com.globalin.kotsukotsu.service.NoteService;
+import com.example.kotsuexample.service.NoteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
