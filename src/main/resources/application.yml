@@ -1,0 +1,14 @@
+spring:
+  application:
+    name: kotsu-example
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${LOCAL_ORACLE_URL}
+    username: ${LOCAL_ORACLE_USERNAME}
+    password: ${LOCAL_ORACLE_PASSWORD}
+
+  data:
+    redis:
+      host: ${LOCAL_REDIS_HOST}
+      port: ${LOCAL_REDIS_PORT}
