@@ -2,7 +2,7 @@ package com.example.kotsuexample.service;
 
 import com.example.kotsuexample.dto.*;
 import com.example.kotsuexample.entity.User;
-import com.example.kotsuexample.exception.*;
+import com.example.kotsuexample.exception.user.*;
 import com.example.kotsuexample.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
