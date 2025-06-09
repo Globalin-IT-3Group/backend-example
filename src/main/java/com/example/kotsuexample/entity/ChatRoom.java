@@ -2,6 +2,7 @@ package com.example.kotsuexample.entity;
 
 import com.example.kotsuexample.entity.enums.ChatRoomType;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -15,15 +16,21 @@ public class ChatRoom {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
     private ChatRoomType type;
 
     @Column(name = "study_room_id")
-    private Long studyRoomId;
+    private Integer studyRoomId;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+
+    @Builder
+    public ChatRoom(ChatRoomType type, LocalDateTime createdAt) {
+        this.type = type;
+        this.createdAt = createdAt;
+    }
 }

@@ -8,10 +8,10 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "chat_room_members")
+@Table(name = "chat_read_status")
 @Getter
 @NoArgsConstructor
-public class ChatRoomMember {
+public class ChatReadStatus {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,13 +23,16 @@ public class ChatRoomMember {
     @Column(name = "user_id", nullable = false)
     private Integer userId;
 
-    @Column(name = "joined_at", updatable = false)
-    private LocalDateTime joinedAt;
+    @Column(name = "last_read_at")
+    private LocalDateTime lastReadAt;
+
+    public void updateLastReadAt(LocalDateTime lastReadAt) {
+        this.lastReadAt = lastReadAt;
+    }
 
     @Builder
-    public ChatRoomMember(Integer chatRoomId, Integer userId, LocalDateTime joinedAt) {
+    public ChatReadStatus(Integer chatRoomId, Integer userId) {
         this.chatRoomId = chatRoomId;
         this.userId = userId;
-        this.joinedAt = joinedAt;
     }
 }
