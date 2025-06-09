@@ -84,27 +84,58 @@ public class UserService {
         return userInfoDTO;
     }
 
-    public ResponseMessage<String> getUserEmail(String phoneNumber, String answer) {
+    public ResponseData<String> getUserEmail(String phoneNumber, String answer) {
         User foundedUser = userRepository
                 .findByPhoneNumberAndAnswer(phoneNumber, answer)
                 .orElseThrow(() -> new UserNotFoundByPhoneNumberAndAnswer("전화번호 또는 답변이 잘못되었습니다."));
 
         String email = foundedUser.getEmail();
 
-        return ResponseMessage.<String>builder()
-                .message(email)
+        return ResponseData.<String>builder()
+                .data(email)
                 .build();
     }
 
-    public ResponseMessage<String> getUserPassword(String email, String answer) {
+    public ResponseData<String> getUserPassword(String email, String answer) {
         User foundedUser = userRepository
                 .findByEmailAndAnswer(email, answer)
                 .orElseThrow(() -> new UserNotFoundByEmailAndAnswer("이메일 또는 답변이 잘못되었습니다."));
 
         String password = foundedUser.getPassword();
 
-        return ResponseMessage.<String>builder()
-                .message(password)
+        return ResponseData.<String>builder()
+                .data(password)
                 .build();
+    }
+
+    public boolean isNicknameDuplicated(String nickname) {
+        return userRepository.existsByNickname(nickname);
+    }
+
+    public void updateNickname(Integer userId, String inputtedNickname) {
+        User foundedUser = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundByIdException("아이디 값에 따른 유저가 조회되지 않습니다."));
+
+        foundedUser.updateNickname(inputtedNickname);
+        userRepository.save(foundedUser);
+    }
+
+    public void updatePassword(Integer userId, String inputtedPassword) {
+        User foundedUser = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundByIdException("아이디 값에 따른 유저가 조회되지 않습니다."));
+
+        String currentPassword = foundedUser.getPassword();
+        if (currentPassword.equals(inputtedPassword)) throw new SameValueException("현재 비밀번호와 일치합니다.");
+
+        foundedUser.updatePassword(inputtedPassword);
+        userRepository.save(foundedUser);
+    }
+
+    public void updateProfileMessage(Integer userId, String inputtedProfileMessage) {
+        User foundedUser = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundByIdException("아이디 값에 따른 유저가 조회되지 않습니다."));
+
+        foundedUser.updateProfileMessage(inputtedProfileMessage);
+        userRepository.save(foundedUser);
     }
 }
