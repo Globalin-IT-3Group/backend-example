@@ -2,6 +2,7 @@ package com.example.kotsuexample.controller;
 
 import com.example.kotsuexample.dto.*;
 import com.example.kotsuexample.service.UserService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,8 +29,10 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
-        LoginResponse loginResponse = userService.login(loginRequest);
+    public ResponseEntity<LoginResponse> login(
+            @RequestBody LoginRequest loginRequest,
+            HttpServletResponse response) {
+        LoginResponse loginResponse = userService.login(loginRequest, response);
         return ResponseEntity.ok(loginResponse);
     }
 
