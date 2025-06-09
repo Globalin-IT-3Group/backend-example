@@ -1,6 +1,7 @@
 package com.example.kotsuexample.entity;
 
 import com.example.kotsuexample.dto.LoginResponse;
+import com.example.kotsuexample.dto.UserResponse;
 import com.example.kotsuexample.entity.enums.SignupType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -110,5 +111,19 @@ public class User {
 
     public void updateProfileImage(String profileImage) {
         this.profileImage = profileImage;
+    }
+
+    public void updateQuestionAndAnswer(String question, String answer) {
+        this.question = question;
+        this.answer = answer;
+    }
+
+    public UserResponse toUserResponse() {
+        return UserResponse.builder()
+                .id(this.id)
+                .nickname(this.nickname)
+                .profileImage(this.profileImage)
+                .profileMessage(this.profileMessage)
+                .build();
     }
 }
