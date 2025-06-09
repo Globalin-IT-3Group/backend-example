@@ -1,6 +1,7 @@
 package com.example.kotsuexample.entity;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -25,4 +26,20 @@ public class Note {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    @Builder
+    public Note(Integer userId, String title, String content, LocalDateTime createdAt) {
+        this.userId = userId;
+        this.title = title;
+        this.content = content;
+        this.createdAt = createdAt;
+    }
+
+    public void changeTitle(String title) {
+        this.title = title;
+    }
+
+    public void changeContent(String content) {
+        this.content = content;
+    }
 }
