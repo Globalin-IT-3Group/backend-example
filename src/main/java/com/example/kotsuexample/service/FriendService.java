@@ -33,23 +33,23 @@ public class FriendService {
     }
 
     public Boolean requestOrCancelFriend(Integer requesterId, Integer addresseeId) {
-        Optional<Friend> isExistFriend = friendRepository.findByRequesterIdAndAddresseeIdAndStatus(requesterId, addresseeId, FriendStatus.PENDING);
+        Optional<Friend> friendOpt = friendRepository
+                .findByRequesterIdAndAddresseeIdAndStatus(requesterId, addresseeId, FriendStatus.PENDING);
 
-        Friend friend;
-        if (isExistFriend.isPresent()) {
-            friend = isExistFriend.get();
-            friendRepository.delete(friend);
-            return false;
+        if (friendOpt.isPresent()) {
+            // 요청이 이미 존재하면 삭제 = 취소
+            friendRepository.delete(friendOpt.get());
+            return false; // 취소됨
+        } else {
+            // 요청이 없으면 새로 생성
+            Friend friend = Friend.builder()
+                    .requesterId(requesterId)
+                    .addresseeId(addresseeId)
+                    .status(FriendStatus.PENDING)
+                    .build();
+            friendRepository.save(friend);
+            return true; // 요청됨
         }
-
-        friend = Friend.builder()
-                .requesterId(requesterId)
-                .addresseeId(addresseeId)
-                .status(FriendStatus.PENDING)
-                .build();
-
-        friendRepository.save(friend);
-        return true;
     }
 
     // 내가 보낸 요청

@@ -5,6 +5,7 @@ import com.example.kotsuexample.dto.ResponseData;
 import com.example.kotsuexample.dto.UserResponse;
 import com.example.kotsuexample.exception.user.NoneInputValueException;
 import com.example.kotsuexample.service.FriendService;
+import com.example.kotsuexample.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,7 @@ import java.util.Map;
 public class FriendController {
 
     private final FriendService friendService;
+    private final NotificationService notificationService;
 
     @GetMapping("/")
     public ResponseEntity<List<UserResponse>> getFriends(@CurrentUser Integer userId) {
@@ -34,7 +36,15 @@ public class FriendController {
         Integer addresseeId = payload.get("addresseeId");
         if (addresseeId == null) throw new NoneInputValueException("입력된 아이디 값이 없습니다.");
 
+        // true면 "요청", false면 "취소"
         Boolean isFriend = friendService.requestOrCancelFriend(userId, addresseeId);
+
+        // 알림은 "새 요청"일 때만 보냄
+        if (isFriend) {
+            String content = "새 친구 요청이 도착했습니다!";
+            notificationService.notifyFriendRequest(addresseeId, content);
+        }
+
         return ResponseEntity.ok(ResponseData.<Boolean>builder().data(isFriend).build());
     }
 
