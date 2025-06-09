@@ -14,7 +14,7 @@ import java.util.Date;
 @Component
 public class JwtTokenProvider {
     private final SecretKey secretKey;
-    private static final Duration ACCESS_TOKEN_EXPIRATION_TIME = Duration.ofMinutes(10); // 10분
+    private static final Duration ACCESS_TOKEN_EXPIRATION_TIME = Duration.ofMinutes(60); // 1시간
 
     public JwtTokenProvider(@Value("${jwt.secret}") String jwtSecret) {
         this.secretKey = Keys.hmacShaKeyFor(Decoders.BASE64URL.decode(jwtSecret));
