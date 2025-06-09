@@ -95,4 +95,20 @@ public class User {
                 .signupType(this.signupType)
                 .build();
     }
+
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+    public void updateProfileMessage(String profileMessage) {
+        this.nickname = profileMessage;
+    }
+
+    public void updatePassword(String password) {
+        this.password = password;
+    }
+
+    public void updateProfileImage(String profileImage) {
+        this.profileImage = profileImage;
+    }
 }
