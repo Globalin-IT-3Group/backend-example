@@ -1,12 +1,17 @@
 package com.example.kotsuexample.controller;
 
 import com.example.kotsuexample.dto.*;
+import com.example.kotsuexample.config.CurrentUser;
+import com.example.kotsuexample.exception.user.ExistNicknameException;
+import com.example.kotsuexample.exception.user.NoneInputValueException;
 import com.example.kotsuexample.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -15,11 +20,12 @@ public class UserController {
 
     private final UserService userService;
 
-    // 귀찮아서 DTO 안 만듦
     @GetMapping("/check-email")
-    public ResponseEntity<Boolean> checkEmail(@RequestParam String email) {
+    public ResponseEntity<ResponseData<Boolean>> checkEmail(@RequestParam String email) {
         Boolean isDuplicate = userService.isEmailDuplicated(email);
-        return ResponseEntity.ok(isDuplicate);
+        return ResponseEntity.ok(ResponseData.<Boolean>builder()
+                .data(isDuplicate)
+                .build());
     }
 
     @PostMapping("/join")
@@ -30,8 +36,7 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(
-            @RequestBody LoginRequest loginRequest,
-            HttpServletResponse response) {
+            @RequestBody LoginRequest loginRequest, HttpServletResponse response) {
         LoginResponse loginResponse = userService.login(loginRequest, response);
         return ResponseEntity.ok(loginResponse);
     }
@@ -42,21 +47,66 @@ public class UserController {
         return ResponseEntity.ok(userInfoDTO);
     }
 
-    @PutMapping
-    public ResponseEntity<UserInfoDTO> updateUserInfo(@RequestBody UserInfoDTO userInfoDTO) {
-        UserInfoDTO updatedUserInfoDTO = userService.updateUserInfo(userInfoDTO);
-        return ResponseEntity.ok(updatedUserInfoDTO);
+    @PutMapping("/nickname")
+    public ResponseEntity<ResponseData<Boolean>> updateNickname(
+            @CurrentUser Integer userId, @RequestBody Map<String, String> payload) {
+        String inputtedNickname = payload.get("nickname");
+
+        if (inputtedNickname.isEmpty()) throw new NoneInputValueException("입력 값이 없습니다.");
+
+        boolean isDuplicate = userService.isNicknameDuplicated(inputtedNickname);
+
+        if (isDuplicate) throw new ExistNicknameException("존재하는 닉네임입니다.");
+
+        userService.updateNickname(userId, inputtedNickname);
+
+        return ResponseEntity.ok(ResponseData.<Boolean>builder()
+                .data(true)
+                .build());
     }
 
+    // TODO: 프로필메시지
+    @PutMapping("/password")
+    public ResponseEntity<ResponseData<Boolean>> updatePassword(
+            @CurrentUser Integer userId, @RequestBody Map<String, String> payload) {
+        String inputtedPassword = payload.get("password");
+
+        if (inputtedPassword.isEmpty()) throw new NoneInputValueException("입력 값이 없습니다.");
+
+        userService.updatePassword(userId, inputtedPassword);
+
+        return ResponseEntity.ok(ResponseData.<Boolean>builder()
+                .data(true)
+                .build());
+    }
+
+    @PutMapping("/profile-message")
+    public ResponseEntity<ResponseData<Boolean>> updateProfileMessage(
+            @CurrentUser Integer userId, @RequestBody Map<String, String> payload) {
+        String inputtedProfileMessage = payload.get("profileMessage");
+
+        userService.updateProfileMessage(userId, inputtedProfileMessage);
+
+        return ResponseEntity.ok(ResponseData.<Boolean>builder()
+                .data(true)
+                .build());
+    }
+
+//    @PutMapping
+//    public ResponseEntity<UserInfoDTO> updateUserInfo(@RequestBody UserInfoDTO userInfoDTO) {
+//        UserInfoDTO updatedUserInfoDTO = userService.updateUserInfo(userInfoDTO);
+//        return ResponseEntity.ok(updatedUserInfoDTO);
+//    }
+
     @PostMapping("/find-email")
-    public ResponseEntity<ResponseMessage> getUserEmail(@RequestBody FindEmailRequest findEmailRequest) {
-        ResponseMessage responseMessage = userService.getUserEmail(findEmailRequest.getPhoneNumber(), findEmailRequest.getAnswer());
-        return ResponseEntity.ok(responseMessage);
+    public ResponseEntity<ResponseData<String>> getUserEmail(@RequestBody FindEmailRequest findEmailRequest) {
+        ResponseData<String> responseData = userService.getUserEmail(findEmailRequest.getPhoneNumber(), findEmailRequest.getAnswer());
+        return ResponseEntity.ok(responseData);
     }
 
     @PostMapping("/find-password")
-    public ResponseEntity<ResponseMessage> getUserPassword(@RequestBody FindPasswordRequest findPasswordRequest) {
-        ResponseMessage responseMessage = userService.getUserPassword(findPasswordRequest.getEmail(), findPasswordRequest.getAnswer());
-        return ResponseEntity.ok(responseMessage);
+    public ResponseEntity<ResponseData<String>> getUserPassword(@RequestBody FindPasswordRequest findPasswordRequest) {
+        ResponseData<String> responseData = userService.getUserPassword(findPasswordRequest.getEmail(), findPasswordRequest.getAnswer());
+        return ResponseEntity.ok(responseData);
     }
 }
