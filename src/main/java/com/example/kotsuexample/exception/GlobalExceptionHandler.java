@@ -99,9 +99,18 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponseDTO, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler
+    public ResponseEntity<ErrorResponseDTO> catchUserUnauthorizedException(UserUnauthorizedException e) {
+        ErrorResponseDTO errorResponseDTO = ErrorResponseDTO.builder()
+                .message(e.getMessage())
+                .build();
+
+        return new ResponseEntity<>(errorResponseDTO, HttpStatus.UNAUTHORIZED);
+    }
+
     @Getter
     @NoArgsConstructor
-    private static class ErrorResponseDTO {
+    public static class ErrorResponseDTO {
         private LocalDateTime timestamp;
         private String message;
 
