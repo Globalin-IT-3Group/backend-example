@@ -2,6 +2,7 @@ package com.example.kotsuexample.entity;
 
 import com.example.kotsuexample.entity.enums.NotificationType;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -15,10 +16,10 @@ public class Notification {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @Column(name = "user_id", nullable = false)
-    private Long userId;
+    private Integer userId;
 
     @Column(nullable = false)
     private NotificationType type;
@@ -28,4 +29,13 @@ public class Notification {
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+
+    @Builder
+
+    public Notification(Integer userId, NotificationType type, String content, LocalDateTime createdAt) {
+        this.userId = userId;
+        this.type = type;
+        this.content = content;
+        this.createdAt = createdAt;
+    }
 }
