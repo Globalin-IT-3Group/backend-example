@@ -1,5 +1,7 @@
 package com.example.kotsuexample.entity;
 
+import com.example.kotsuexample.dto.LoginResponse;
+import com.example.kotsuexample.entity.enums.SignupType;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -44,6 +46,10 @@ public class User {
     @Column(name = "profile_message")
     private String profileMessage;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "signup_type")
+    private SignupType signupType;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -52,8 +58,9 @@ public class User {
 //    private List<StudyRoom> studyRooms = new ArrayList<>();
 
     @Builder
-    public User(Integer id, String phoneNumber, String email, String password, String nickname, String question, String answer, String profileImage, String profileMessage, LocalDateTime createdAt) {
-        this.id = id;
+    public User(String phoneNumber, String email, String password, String nickname,
+                String question, String answer, String profileImage, String profileMessage,
+                SignupType signupType, LocalDateTime createdAt) {
         this.phoneNumber = phoneNumber;
         this.email = email;
         this.password = password;
@@ -62,6 +69,30 @@ public class User {
         this.answer = answer;
         this.profileImage = profileImage;
         this.profileMessage = profileMessage;
+        this.signupType = signupType;
         this.createdAt = createdAt;
+    }
+
+    // 카카오 회원 생성용 팩토리 메서드
+    public static User kakaoUser(String email, String nickname, String profileImage, SignupType signupType, LocalDateTime createdAt) {
+        return User.builder()
+                .phoneNumber("KAKAO")
+                .password("KAKAO")
+                .email(email)
+                .nickname(nickname)
+                .profileImage(profileImage)
+                .signupType(signupType)
+                .createdAt(createdAt)
+                .build();
+    }
+
+    public LoginResponse toLoginResponse() {
+        return LoginResponse.builder()
+                .id(this.id)
+                .email(this.email)
+                .profileImage(this.profileImage)
+                .nickname(this.nickname)
+                .signupType(this.signupType)
+                .build();
     }
 }
