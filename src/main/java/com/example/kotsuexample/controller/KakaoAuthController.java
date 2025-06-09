@@ -1,9 +1,11 @@
 package com.example.kotsuexample.controller;
 
+import com.example.kotsuexample.dto.LoginResponse;
+import com.example.kotsuexample.exception.user.UserNoAuthorizationCodeFromKakaoException;
 import com.example.kotsuexample.service.KakaoAuthService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,18 +18,17 @@ public class KakaoAuthController {
 
     private final KakaoAuthService kakaoAuthService;
 
-    @CrossOrigin(origins = "http://localhost:5173")
     @PostMapping("/kakao/user/auth")
-    public ResponseEntity<?> kakaoAuth(@RequestBody Map<String, String> payload) {
+    public ResponseEntity<?> kakaoAuth(@RequestBody Map<String, String> payload, HttpServletResponse response) {
 
         String code = payload.get("code");
 
         if (code == null || code.isEmpty()) {
-            return ResponseEntity.badRequest().body("인가 코드가 필요합니다.");
+            throw new UserNoAuthorizationCodeFromKakaoException("인가 코드가 필요합니다.");
         }
 
-        Map<String, Object> userInfo = kakaoAuthService.kakaoLogin(code);
+        LoginResponse loginResponse = kakaoAuthService.kakaoLogin(code, response);
 
-        return ResponseEntity.ok(userInfo);
+        return ResponseEntity.ok(loginResponse);
     }
 }
