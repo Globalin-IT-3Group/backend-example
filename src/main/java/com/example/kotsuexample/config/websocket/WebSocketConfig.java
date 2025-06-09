@@ -16,10 +16,11 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(studyChatHandler, "/study")
+        registry.addHandler(studyChatHandler, "/ws/study")
                 .setAllowedOrigins("*");
 
-        registry.addHandler(personalChatHandler, "/personal")
+//      ex. ws://localhost:8080/ws/personal?roomId=123&userId=5
+        registry.addHandler(personalChatHandler, "/ws/personal")
                 .setAllowedOrigins("*");
     }
 }
