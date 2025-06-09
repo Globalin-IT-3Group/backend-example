@@ -4,6 +4,8 @@ import com.example.kotsuexample.dto.*;
 import com.example.kotsuexample.entity.User;
 import com.example.kotsuexample.exception.user.*;
 import com.example.kotsuexample.repository.UserRepository;
+import com.example.kotsuexample.security.LoginTokenHandler;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Service;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final LoginTokenHandler loginTokenHandler;
 
     public Boolean isEmailDuplicated(String email) {
         return userRepository.existsByEmail(email);
@@ -30,18 +33,23 @@ public class UserService {
         userRepository.save(newUser);
     }
 
-    public LoginResponse login(LoginRequest loginRequest) {
+    public LoginResponse login(LoginRequest loginRequest, HttpServletResponse response) {
         String email = loginRequest.getEmail();
         String password = loginRequest.getPassword();
 
         User foundedUser = userRepository.findByEmailAndPassword(email, password)
                 .orElseThrow(() -> new UserLoginException("이메일 또는 비밀번호가 잘못되었습니다!"));
 
+        String userId = String.valueOf(foundedUser.getId());
+
+        loginTokenHandler.issueLoginToken(userId, response);
+
         return LoginResponse.builder()
                 .id(foundedUser.getId())
                 .email(foundedUser.getEmail())
                 .nickname(foundedUser.getNickname())
                 .profileImage(foundedUser.getProfileImage())
+                .signupType(foundedUser.getSignupType())
                 .build();
     }
 
@@ -59,6 +67,7 @@ public class UserService {
                 .answer(foundedUser.getAnswer())
                 .profileImage(foundedUser.getProfileImage())
                 .profileMessage(foundedUser.getProfileMessage())
+                .signupType(foundedUser.getSignupType())
                 .createdAt(foundedUser.getCreatedAt())
                 .build();
     }
