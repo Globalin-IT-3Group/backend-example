@@ -21,7 +21,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final RedisUtil redisUtil;
 
     private static final Set<String> WHITELIST = Set.of(
-            "/kakao/user/auth", "/user/login", "/favicon.ico"
+            "/kakao/user/auth", "/user/login", "/favicon.ico", "/user/join", "/user/check-email", "/user/find-email", "/user/find-password"
     );
 
     @Override
@@ -42,7 +42,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             String savedToken = redisUtil.getAccessToken("LOGIN_" + userId);
             if (savedToken != null && savedToken.equals(token)) {
-                request.setAttribute("userId", userId);
+                request.setAttribute("userId", Integer.valueOf(userId));
                 filterChain.doFilter(request, response);
                 return;
             }
