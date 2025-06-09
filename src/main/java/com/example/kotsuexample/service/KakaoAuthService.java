@@ -1,6 +1,17 @@
 package com.example.kotsuexample.service;
 
+import com.example.kotsuexample.dto.LoginResponse;
+import com.example.kotsuexample.dto.kakao.KakaoUserInfoDTO;
+import com.example.kotsuexample.entity.User;
+import com.example.kotsuexample.entity.enums.SignupType;
+import com.example.kotsuexample.exception.user.UserNoAccessTokenFromKakaoException;
+import com.example.kotsuexample.exception.user.UserNoDataFromKakaoException;
+import com.example.kotsuexample.exception.user.UserNotFoundByEmailException;
+import com.example.kotsuexample.repository.UserRepository;
+import com.example.kotsuexample.security.LoginTokenHandler;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -9,20 +20,26 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class KakaoAuthService {
+    private final UserRepository userRepository;
+    private final LoginTokenHandler loginTokenHandler;
+
+    @Value("${kakao.rest-api-key}")
+    private String REST_API_KEY;
+
+    @Value("${kakao.redirect-uri}")
+    private String REDIRECT_URI;
 
     private final WebClient webClient = WebClient.builder()
             .baseUrl("https://kauth.kakao.com")
             .build();
 
-    private final String REST_API_KEY = "1db4d2d646ab02b6069344587fe99581";
-    private final String REDIRECT_URI = "http://localhost:5173/kakao/login";
-
-    public Map<String, Object> kakaoLogin(String code) {
+    public LoginResponse kakaoLogin(String code, HttpServletResponse response) {
 
         Map<String, String> tokenResponse = webClient.post()
                 .uri("/oauth/token")
@@ -32,17 +49,45 @@ public class KakaoAuthService {
                 .bodyToMono(new ParameterizedTypeReference<Map<String, String>>() {})
                 .block();
 
+        if (tokenResponse == null) {
+            throw new UserNoAccessTokenFromKakaoException("카카오로부터 토큰 응답이 오지 않았습니다.");
+        }
+
         String accessToken = tokenResponse.get("access_token");
 
-        Map<String, Object> userInfo = WebClient.create("https://kapi.kakao.com")
+        KakaoUserInfoDTO userInfo = WebClient.create("https://kapi.kakao.com")
                 .get()
                 .uri("/v2/user/me")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
                 .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+                .bodyToMono(KakaoUserInfoDTO.class)
                 .block();
 
-        return userInfo;
+        if (userInfo == null || userInfo.getKakao_account() == null) {
+            throw new UserNoDataFromKakaoException("카카오로부터 넘어온 유저 데이터가 없습니다.");
+        }
+
+        String email = userInfo.getKakao_account().getEmail();
+        String nickname = userInfo.getKakao_account().getProfile().getNickname();
+        String profileImageUrl = userInfo.getKakao_account().getProfile().getProfile_image_url();
+
+        boolean isExistUser = userRepository.existsByEmail(email);
+        LoginResponse loginResponse;
+
+        if (!isExistUser) {
+            User user = User.kakaoUser(email, nickname, profileImageUrl, SignupType.KAKAO, LocalDateTime.now());
+            User newUser = userRepository.save(user);
+            loginResponse = newUser.toLoginResponse();
+        } else {
+            User existUser = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new UserNotFoundByEmailException("이메일에 따른 유저가 조회되지 않습니다."));
+            loginResponse = existUser.toLoginResponse();
+        }
+
+        String userId = String.valueOf(loginResponse.getId());
+
+        loginTokenHandler.issueLoginToken(userId, response);
+        return loginResponse;
     }
 
     private MultiValueMap<String, String> buildTokenRequestBody(String code) {
