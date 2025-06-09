@@ -92,6 +92,23 @@ public class UserController {
                 .build());
     }
 
+    @PutMapping("/question-answer")
+    public ResponseEntity<ResponseData<Boolean>> updateQuestion(
+            @CurrentUser Integer userId, @RequestBody Map<String, String> payload) {
+        String inputtedQuestion = payload.get("question");
+        String inputtedAnswer = payload.get("answer");
+
+        if (inputtedQuestion.isEmpty() || inputtedAnswer.isEmpty()) {
+            throw new NoneInputValueException("입력 값이 없습니다.");
+        }
+
+        userService.updateQuestionAndAnswer(userId, inputtedQuestion, inputtedAnswer);
+
+        return ResponseEntity.ok(ResponseData.<Boolean>builder()
+                .data(true)
+                .build());
+    }
+
 //    @PutMapping
 //    public ResponseEntity<UserInfoDTO> updateUserInfo(@RequestBody UserInfoDTO userInfoDTO) {
 //        UserInfoDTO updatedUserInfoDTO = userService.updateUserInfo(userInfoDTO);
