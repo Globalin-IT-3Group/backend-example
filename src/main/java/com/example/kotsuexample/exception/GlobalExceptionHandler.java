@@ -72,6 +72,33 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponseDTO, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler
+    public ResponseEntity<ErrorResponseDTO> catchUserNoDataFromKakaoException(UserNoDataFromKakaoException e) {
+        ErrorResponseDTO errorResponseDTO = ErrorResponseDTO.builder()
+                .message(e.getMessage())
+                .build();
+
+        return new ResponseEntity<>(errorResponseDTO, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ErrorResponseDTO> catchUserNoAuthorizationCodeFromKakaoException(UserNoAuthorizationCodeFromKakaoException e) {
+        ErrorResponseDTO errorResponseDTO = ErrorResponseDTO.builder()
+                .message(e.getMessage())
+                .build();
+
+        return new ResponseEntity<>(errorResponseDTO, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ErrorResponseDTO> catchUserNoAccessTokenFromKakaoException(UserNoAccessTokenFromKakaoException e) {
+        ErrorResponseDTO errorResponseDTO = ErrorResponseDTO.builder()
+                .message(e.getMessage())
+                .build();
+
+        return new ResponseEntity<>(errorResponseDTO, HttpStatus.NOT_FOUND);
+    }
+
     @Getter
     @NoArgsConstructor
     private static class ErrorResponseDTO {
