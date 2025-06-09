@@ -6,12 +6,12 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-public class ResponseMessage {
+public class ResponseMessage<T> {
 
-    private String message;
+    private T message;
 
     @Builder
-    public ResponseMessage(String message) {
+    public ResponseMessage(T message) {
         this.message = message;
     }
 }
