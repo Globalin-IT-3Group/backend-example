@@ -21,7 +21,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final RedisUtil redisUtil;
 
     private static final Set<String> WHITELIST = Set.of(
-            "/kakao/user/auth", "/user/login", "/favicon.ico", "/user/join", "/user/check-email", "/user/find-email", "/user/find-password"
+            "/kakao/user/auth",
+            "/user/login", "/favicon.ico",
+            "/user/join",
+            "/user/check-email",
+            "/user/find-email",
+            "/user/find-password"
     );
 
     @Override
