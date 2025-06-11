@@ -2,8 +2,14 @@ package com.example.kotsuexample.config.redis;
 
 import com.example.kotsuexample.config.websocket.ChatSessionManager;
 import com.example.kotsuexample.dto.ChatMessageDTO;
+import com.example.kotsuexample.dto.SseNotificationDTO;
+import com.example.kotsuexample.dto.UserResponse;
 import com.example.kotsuexample.entity.ChatMessage;
+import com.example.kotsuexample.entity.enums.NotificationType;
 import com.example.kotsuexample.repository.ChatMessageRepository;
+import com.example.kotsuexample.service.ChatRoomService;
+import com.example.kotsuexample.service.SseService;
+import com.example.kotsuexample.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.connection.Message;
@@ -12,8 +18,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -22,6 +28,9 @@ public class RedisSubscriber implements MessageListener {
     private final ChatSessionManager sessionManager;
     private final ObjectMapper objectMapper;
     private final ChatMessageRepository chatMessageRepository;
+    private final SseService sseService;
+    private final ChatRoomService chatRoomService;
+    private final UserService userService;
 
     @Override
     public void onMessage(Message message, byte[] pattern) {
@@ -56,8 +65,31 @@ public class RedisSubscriber implements MessageListener {
                 }
             }
 
+            // 알림 발송 (상대방이 연결 안 되어 있을 경우)
+            List<Integer> otherUserIds = getOtherUserIdsInRoom(dto.getChatRoomId(), dto.getSenderId());
+            for (Integer targetId : otherUserIds) {
+                boolean connected = sessionManager.isUserConnected(roomId, targetId);
+                if (!connected) {
+                    UserResponse sender = userService.getSimpleUserInfoById(dto.getSenderId());
+
+                    SseNotificationDTO notification = SseNotificationDTO.builder()
+                            .type(NotificationType.CHAT)
+                            .sender(sender)
+                            .roomId(dto.getChatRoomId())
+                            .createdAt(dto.getSentAt())
+                            .build();
+
+                    sseService.send(targetId, NotificationType.CHAT, notification);
+                }
+            }
         } catch (Exception e) {
             e.printStackTrace(); // 또는 로깅
         }
+    }
+
+    private List<Integer> getOtherUserIdsInRoom(Integer roomId, Integer senderId) {
+        return chatRoomService.getMemberIds(roomId).stream()
+                .filter(id -> !id.equals(senderId))
+                .toList();
     }
 }

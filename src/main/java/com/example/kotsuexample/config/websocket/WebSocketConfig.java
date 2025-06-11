@@ -19,8 +19,8 @@ public class WebSocketConfig implements WebSocketConfigurer {
         registry.addHandler(studyChatHandler, "/ws/study")
                 .setAllowedOrigins("*");
 
-//      ex. ws://localhost:8080/ws/personal?roomId=123&userId=5
-        registry.addHandler(personalChatHandler, "/ws/personal")
+//      ex. ws://localhost:8080/ws/chat?roomId=123&userId=5
+        registry.addHandler(personalChatHandler, "/ws/chat")
                 .setAllowedOrigins("*");
     }
 }

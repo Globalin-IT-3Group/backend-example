@@ -2,9 +2,11 @@ package com.example.kotsuexample.config.websocket;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -27,5 +29,16 @@ public class ChatSessionManager {
 
     public Set<WebSocketSession> getSessions(String roomId) {
         return sessionMap.getOrDefault(roomId, Collections.emptySet());
+    }
+
+    public boolean isUserConnected(String roomId, Integer userId) {
+        return getSessions(roomId).stream().anyMatch(session -> {
+            String connectedUserId = getQueryParam(session, "userId");
+            return userId.toString().equals(connectedUserId);
+        });
+    }
+
+    public String getQueryParam(WebSocketSession session, String key) {
+        return UriComponentsBuilder.fromUri(Objects.requireNonNull(session.getUri())).build().getQueryParams().getFirst(key);
     }
 }

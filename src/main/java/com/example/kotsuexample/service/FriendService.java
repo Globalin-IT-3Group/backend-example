@@ -27,7 +27,7 @@ public class FriendService {
                             ? friend.getAddresseeId()
                             : friend.getRequesterId();
 
-                    return userService.findFriendById(friendId);
+                    return userService.getSimpleUserInfoById(friendId);
                 })
                 .toList();
     }
@@ -56,7 +56,7 @@ public class FriendService {
     public List<UserResponse> getRequestedFriends(Integer userId) {
         List<Friend> requests = friendRepository.findByRequesterIdAndStatus(userId, FriendStatus.PENDING);
         return requests.stream()
-                .map(friend -> userService.findFriendById(friend.getAddresseeId()))
+                .map(friend -> userService.getSimpleUserInfoById(friend.getAddresseeId()))
                 .toList();
     }
 
@@ -64,7 +64,7 @@ public class FriendService {
     public List<UserResponse> getPendingRequests(Integer userId) {
         List<Friend> requests = friendRepository.findByAddresseeIdAndStatus(userId, FriendStatus.PENDING);
         return requests.stream()
-                .map(friend -> userService.findFriendById(friend.getRequesterId()))
+                .map(friend -> userService.getSimpleUserInfoById(friend.getRequesterId()))
                 .toList();
     }
 

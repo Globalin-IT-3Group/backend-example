@@ -42,7 +42,7 @@ public class FriendController {
         // 알림은 "새 요청"일 때만 보냄
         if (isFriend) {
             String content = "새 친구 요청이 도착했습니다!";
-            notificationService.notifyFriendRequest(addresseeId, content);
+            notificationService.notifyFriendRequest(userId, addresseeId, content);
         }
 
         return ResponseEntity.ok(ResponseData.<Boolean>builder().data(isFriend).build());

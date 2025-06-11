@@ -22,13 +22,13 @@ public class SseService {
         return emitter;
     }
 
-    public void send(Integer receiverId, NotificationType type, String message) {
+    public void send(Integer receiverId, NotificationType type, Object data) {
         SseEmitter emitter = emitters.get(receiverId);
         if (emitter != null) {
             try {
                 emitter.send(SseEmitter.event()
-                        .name(type.name().toLowerCase()) // ex: "friend", "study", "system"
-                        .data(message));
+                        .name(type.name().toLowerCase()) // ex: "friend", "study", "system", "chat"
+                        .data(data));
             } catch (IOException e) {
                 emitters.remove(receiverId);
             }

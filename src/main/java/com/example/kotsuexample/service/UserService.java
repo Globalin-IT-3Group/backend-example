@@ -147,7 +147,7 @@ public class UserService {
         userRepository.save(foundedUser);
     }
 
-    public UserResponse findFriendById(Integer friendId) {
+    public UserResponse getSimpleUserInfoById(Integer friendId) {
         User user = userRepository.findById(friendId)
                 .orElseThrow(() -> new UserNotFoundByIdException("아이디 값에 따른 유저가 조회되지 않습니다."));
 

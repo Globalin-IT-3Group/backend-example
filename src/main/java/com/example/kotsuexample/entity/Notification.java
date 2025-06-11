@@ -21,21 +21,32 @@ public class Notification {
     @Column(name = "user_id", nullable = false)
     private Integer userId;
 
+    @Column(name = "sender_id", nullable = false)
+    private Integer senderId; // ✅ 누가 보냈는지
+
     @Column(nullable = false)
     private NotificationType type;
 
     @Lob
     private String content;
 
+    @Column(name = "is_read", nullable = false)
+    private boolean isRead; // ✅ 읽음 여부
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @Builder
-
-    public Notification(Integer userId, NotificationType type, String content, LocalDateTime createdAt) {
+    public Notification(Integer userId, Integer senderId, NotificationType type, String content, boolean isRead, LocalDateTime createdAt) {
         this.userId = userId;
+        this.senderId = senderId;
         this.type = type;
         this.content = content;
+        this.isRead = isRead;
         this.createdAt = createdAt;
+    }
+
+    public void markAsRead() {
+        this.isRead = true;
     }
 }

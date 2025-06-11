@@ -6,6 +6,7 @@ import com.example.kotsuexample.entity.ChatRoom;
 import com.example.kotsuexample.entity.ChatRoomMember;
 import com.example.kotsuexample.entity.User;
 import com.example.kotsuexample.entity.enums.ChatRoomType;
+import com.example.kotsuexample.exception.ChatRoomNotFoundException;
 import com.example.kotsuexample.repository.ChatRoomMemberRepository;
 import com.example.kotsuexample.repository.ChatRoomRepository;
 import com.example.kotsuexample.repository.UserRepository;
@@ -66,6 +67,16 @@ public class ChatRoomService {
                             .profileImageUrl(user.getProfileImage())
                             .build();
                 })
+                .toList();
+    }
+
+    public List<Integer> getMemberIds(Integer roomId) {
+
+        if (!chatRoomRepository.existsById(roomId)) throw new ChatRoomNotFoundException("채팅방이 존재하지 않거나 유효하지 않습니다.");
+
+        return chatRoomMemberRepository.findByChatRoomId(roomId)
+                .stream()
+                .map(ChatRoomMember::getUserId)
                 .toList();
     }
 }
