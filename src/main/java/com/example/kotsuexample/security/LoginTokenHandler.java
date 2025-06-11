@@ -12,20 +12,17 @@ import org.springframework.stereotype.Component;
 public class LoginTokenHandler {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final RedisUtil redisUtil;
 
-    public void issueLoginToken(String userId, HttpServletResponse response) {
-        String jwt = jwtTokenProvider.createAccessToken(userId);
+    public String createToken(String userId) {
+        return jwtTokenProvider.createAccessToken(userId);
+    }
 
-        redisUtil.saveAccessToken("LOGIN_" + userId, jwt, JwtTokenProvider.getAccessTokenExpirationTime());
-
-        ResponseCookie cookie = ResponseCookie.from("AUTH_TOKEN", jwt)
+    public ResponseCookie createCookie(String jwt) {
+        return ResponseCookie.from("AUTH_TOKEN", jwt)
                 .httpOnly(true)
-                .secure(false) // TODO: 운영 환경에서는 true
+                .secure(false) // 운영 시 true
                 .path("/")
                 .maxAge(JwtTokenProvider.getAccessTokenExpirationTime())
                 .build();
-
-        response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 }

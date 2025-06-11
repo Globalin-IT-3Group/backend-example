@@ -18,7 +18,7 @@ public class RedisUtil {
     }
 
     public String getAccessToken(String key) {
-        return Optional.of(redisTemplate.opsForValue().get(key))
+        return Optional.ofNullable(redisTemplate.opsForValue().get(key))
                 .map(Object::toString)
                 .orElse(null);
     }
@@ -28,6 +28,6 @@ public class RedisUtil {
     }
 
     public boolean hasKey(String key) {
-        return Boolean.TRUE.equals(redisTemplate.hasKey(key));
+        return redisTemplate.hasKey(key);
     }
 }

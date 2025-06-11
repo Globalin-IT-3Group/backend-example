@@ -1,12 +1,16 @@
 package com.example.kotsuexample.service;
 
+import com.example.kotsuexample.config.redis.RedisUtil;
 import com.example.kotsuexample.dto.*;
 import com.example.kotsuexample.entity.User;
 import com.example.kotsuexample.exception.user.*;
 import com.example.kotsuexample.repository.UserRepository;
+import com.example.kotsuexample.security.JwtTokenProvider;
 import com.example.kotsuexample.security.LoginTokenHandler;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,6 +19,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final LoginTokenHandler loginTokenHandler;
+    private final RedisUtil redisUtil;
 
     public Boolean isEmailDuplicated(String email) {
         return userRepository.existsByEmail(email);
@@ -43,7 +48,15 @@ public class UserService {
 
         String userId = String.valueOf(foundedUser.getId());
 
-        loginTokenHandler.issueLoginToken(userId, response);
+        // 토큰 발급
+        String jwt = loginTokenHandler.createToken(userId);
+
+        // Redis에 토큰 저장
+        redisUtil.saveAccessToken("LOGIN_" + userId, jwt, JwtTokenProvider.getAccessTokenExpirationTime());
+
+        // 쿠키 발급
+        ResponseCookie cookie = loginTokenHandler.createCookie(jwt);
+        response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
         return LoginResponse.builder()
                 .id(foundedUser.getId())

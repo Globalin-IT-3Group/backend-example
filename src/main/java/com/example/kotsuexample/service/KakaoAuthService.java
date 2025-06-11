@@ -1,5 +1,6 @@
 package com.example.kotsuexample.service;
 
+import com.example.kotsuexample.config.redis.RedisUtil;
 import com.example.kotsuexample.dto.LoginResponse;
 import com.example.kotsuexample.dto.kakao.KakaoUserInfoDTO;
 import com.example.kotsuexample.entity.User;
@@ -8,6 +9,7 @@ import com.example.kotsuexample.exception.user.UserNoAccessTokenFromKakaoExcepti
 import com.example.kotsuexample.exception.user.UserNoDataFromKakaoException;
 import com.example.kotsuexample.exception.user.UserNotFoundByEmailException;
 import com.example.kotsuexample.repository.UserRepository;
+import com.example.kotsuexample.security.JwtTokenProvider;
 import com.example.kotsuexample.security.LoginTokenHandler;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +17,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -26,8 +29,10 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class KakaoAuthService {
+
     private final UserRepository userRepository;
     private final LoginTokenHandler loginTokenHandler;
+    private final RedisUtil redisUtil;
 
     @Value("${kakao.rest-api-key}")
     private String REST_API_KEY;
@@ -40,7 +45,6 @@ public class KakaoAuthService {
             .build();
 
     public LoginResponse kakaoLogin(String code, HttpServletResponse response) {
-
         Map<String, String> tokenResponse = webClient.post()
                 .uri("/oauth/token")
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_FORM_URLENCODED_VALUE)
@@ -84,9 +88,19 @@ public class KakaoAuthService {
             loginResponse = existUser.toLoginResponse();
         }
 
+        // ✅ 여기부터 구조 분리
         String userId = String.valueOf(loginResponse.getId());
 
-        loginTokenHandler.issueLoginToken(userId, response);
+        // 1. 토큰 생성
+        String jwt = loginTokenHandler.createToken(userId);
+
+        // 2. Redis 저장
+        redisUtil.saveAccessToken("LOGIN_" + userId, jwt, JwtTokenProvider.getAccessTokenExpirationTime());
+
+        // 3. 쿠키 생성 및 응답에 설정
+        ResponseCookie cookie = loginTokenHandler.createCookie(jwt);
+        response.setHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+
         return loginResponse;
     }
 
@@ -96,7 +110,7 @@ public class KakaoAuthService {
         formData.add("client_id", REST_API_KEY);
         formData.add("redirect_uri", REDIRECT_URI);
         formData.add("code", code);
-
         return formData;
     }
 }
+
