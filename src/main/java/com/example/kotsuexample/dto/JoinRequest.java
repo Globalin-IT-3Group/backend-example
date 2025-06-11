@@ -1,6 +1,7 @@
 package com.example.kotsuexample.dto;
 
 import com.example.kotsuexample.entity.User;
+import com.example.kotsuexample.entity.enums.SignupType;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -38,6 +39,7 @@ public class JoinRequest {
                 .nickname(this.nickname)
                 .question(this.question)
                 .answer(this.answer)
+                .signupType(SignupType.LOCAL)
                 .createdAt(LocalDateTime.now())
                 .build();
     }

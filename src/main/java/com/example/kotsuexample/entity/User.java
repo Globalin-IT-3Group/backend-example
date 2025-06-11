@@ -103,7 +103,7 @@ public class User {
     }
 
     public void updateProfileMessage(String profileMessage) {
-        this.nickname = profileMessage;
+        this.profileMessage = profileMessage;
     }
 
     public void updatePassword(String password) {
