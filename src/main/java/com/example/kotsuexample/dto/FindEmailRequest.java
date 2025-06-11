@@ -9,5 +9,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class FindEmailRequest {
     private String phoneNumber;
+    private String question;
     private String answer;
 }

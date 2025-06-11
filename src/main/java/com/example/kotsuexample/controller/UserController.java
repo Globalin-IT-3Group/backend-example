@@ -117,13 +117,13 @@ public class UserController {
 
     @PostMapping("/find-email")
     public ResponseEntity<ResponseData<String>> getUserEmail(@RequestBody FindEmailRequest findEmailRequest) {
-        ResponseData<String> responseData = userService.getUserEmail(findEmailRequest.getPhoneNumber(), findEmailRequest.getAnswer());
+        ResponseData<String> responseData = userService.getUserEmail(findEmailRequest);
         return ResponseEntity.ok(responseData);
     }
 
     @PostMapping("/find-password")
     public ResponseEntity<ResponseData<String>> getUserPassword(@RequestBody FindPasswordRequest findPasswordRequest) {
-        ResponseData<String> responseData = userService.getUserPassword(findPasswordRequest.getEmail(), findPasswordRequest.getAnswer());
+        ResponseData<String> responseData = userService.getUserPassword(findPasswordRequest);
         return ResponseEntity.ok(responseData);
     }
 }
