@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Entity
@@ -77,7 +78,7 @@ public class User {
     // 카카오 회원 생성용 팩토리 메서드
     public static User kakaoUser(String email, String nickname, String profileImage, SignupType signupType, LocalDateTime createdAt) {
         return User.builder()
-                .phoneNumber("KAKAO")
+                .phoneNumber(UUID.randomUUID().toString())
                 .password("KAKAO")
                 .email(email)
                 .nickname(nickname)
