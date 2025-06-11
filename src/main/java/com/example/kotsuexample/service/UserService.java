@@ -21,13 +21,14 @@ public class UserService {
     }
 
     public void join(JoinRequest joinRequest) {
+        String email = joinRequest.getEmail();
         String nickname = joinRequest.getNickname();
 
-        boolean isExistNickname = userRepository.existsByNickname(nickname);
+        boolean isExistEmail = userRepository.existsByEmail(email);
+        if (isExistEmail) throw new UserDuplicateException("존재하는 이메일입니다!");
 
-        if (isExistNickname) {
-            throw new ExistNicknameException("존재하는 닉네임입니다!");
-        }
+        boolean isExistNickname = userRepository.existsByNickname(nickname);
+        if (isExistNickname) throw new UserDuplicateException("존재하는 닉네임입니다!");
 
         User newUser = joinRequest.toEntity();
         userRepository.save(newUser);
