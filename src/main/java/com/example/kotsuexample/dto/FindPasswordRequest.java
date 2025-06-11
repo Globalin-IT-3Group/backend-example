@@ -9,5 +9,6 @@ import lombok.Setter;
 @NoArgsConstructor
 public class FindPasswordRequest {
     private String email;
+    private String question;
     private String answer;
 }

@@ -21,13 +21,14 @@ public class UserService {
     }
 
     public void join(JoinRequest joinRequest) {
+        String email = joinRequest.getEmail();
         String nickname = joinRequest.getNickname();
 
-        boolean isExistNickname = userRepository.existsByNickname(nickname);
+        boolean isExistEmail = userRepository.existsByEmail(email);
+        if (isExistEmail) throw new UserDuplicateException("존재하는 이메일입니다!");
 
-        if (isExistNickname) {
-            throw new ExistNicknameException("존재하는 닉네임입니다!");
-        }
+        boolean isExistNickname = userRepository.existsByNickname(nickname);
+        if (isExistNickname) throw new UserDuplicateException("존재하는 닉네임입니다!");
 
         User newUser = joinRequest.toEntity();
         userRepository.save(newUser);
@@ -84,10 +85,14 @@ public class UserService {
         return userInfoDTO;
     }
 
-    public ResponseData<String> getUserEmail(String phoneNumber, String answer) {
+    public ResponseData<String> getUserEmail(FindEmailRequest findEmailRequest) {
+        String phoneNumber = findEmailRequest.getPhoneNumber();
+        String question = findEmailRequest.getQuestion();
+        String answer = findEmailRequest.getAnswer();
+
         User foundedUser = userRepository
-                .findByPhoneNumberAndAnswer(phoneNumber, answer)
-                .orElseThrow(() -> new UserNotFoundByPhoneNumberAndAnswer("전화번호 또는 답변이 잘못되었습니다."));
+                .findByPhoneNumberAndQuestionAndAnswer(phoneNumber, question, answer)
+                .orElseThrow(() -> new UserNotFoundByPhoneNumberAndAnswer("전화번호 또는 질문, 답변이 잘못되었습니다."));
 
         String email = foundedUser.getEmail();
 
@@ -96,10 +101,14 @@ public class UserService {
                 .build();
     }
 
-    public ResponseData<String> getUserPassword(String email, String answer) {
+    public ResponseData<String> getUserPassword(FindPasswordRequest findPasswordRequest) {
+        String email = findPasswordRequest.getEmail();
+        String question = findPasswordRequest.getQuestion();
+        String answer = findPasswordRequest.getAnswer();
+
         User foundedUser = userRepository
-                .findByEmailAndAnswer(email, answer)
-                .orElseThrow(() -> new UserNotFoundByEmailAndAnswer("이메일 또는 답변이 잘못되었습니다."));
+                .findByEmailAndQuestionAndAnswer(email, question, answer)
+                .orElseThrow(() -> new UserNotFoundByEmailAndAnswer("이메일 또는 질문, 답변이 잘못되었습니다."));
 
         String password = foundedUser.getPassword();
 

@@ -64,12 +64,12 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler
-    public ResponseEntity<ErrorResponseDTO> catchExistNicknameException(ExistNicknameException e) {
+    public ResponseEntity<ErrorResponseDTO> catchUserDuplicateException(UserDuplicateException e) {
         ErrorResponseDTO errorResponseDTO = ErrorResponseDTO.builder()
                 .message(e.getMessage())
                 .build();
 
-        return new ResponseEntity<>(errorResponseDTO, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(errorResponseDTO, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler

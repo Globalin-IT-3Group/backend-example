@@ -2,7 +2,7 @@ package com.example.kotsuexample.controller;
 
 import com.example.kotsuexample.dto.*;
 import com.example.kotsuexample.config.CurrentUser;
-import com.example.kotsuexample.exception.user.ExistNicknameException;
+import com.example.kotsuexample.exception.user.UserDuplicateException;
 import com.example.kotsuexample.exception.user.NoneInputValueException;
 import com.example.kotsuexample.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -56,7 +56,7 @@ public class UserController {
 
         boolean isDuplicate = userService.isNicknameDuplicated(inputtedNickname);
 
-        if (isDuplicate) throw new ExistNicknameException("존재하는 닉네임입니다.");
+        if (isDuplicate) throw new UserDuplicateException("존재하는 닉네임입니다.");
 
         userService.updateNickname(userId, inputtedNickname);
 
@@ -117,13 +117,13 @@ public class UserController {
 
     @PostMapping("/find-email")
     public ResponseEntity<ResponseData<String>> getUserEmail(@RequestBody FindEmailRequest findEmailRequest) {
-        ResponseData<String> responseData = userService.getUserEmail(findEmailRequest.getPhoneNumber(), findEmailRequest.getAnswer());
+        ResponseData<String> responseData = userService.getUserEmail(findEmailRequest);
         return ResponseEntity.ok(responseData);
     }
 
     @PostMapping("/find-password")
     public ResponseEntity<ResponseData<String>> getUserPassword(@RequestBody FindPasswordRequest findPasswordRequest) {
-        ResponseData<String> responseData = userService.getUserPassword(findPasswordRequest.getEmail(), findPasswordRequest.getAnswer());
+        ResponseData<String> responseData = userService.getUserPassword(findPasswordRequest);
         return ResponseEntity.ok(responseData);
     }
 }
