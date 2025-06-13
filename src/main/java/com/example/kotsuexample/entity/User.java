@@ -42,8 +42,7 @@ public class User {
 
     private String answer;
 
-    @Lob
-    @Column(name = "profile_image")
+    @Column(name = "profile_image", columnDefinition = "LONGTEXT")
     private String profileImage;
 
     @Column(name = "profile_message")
