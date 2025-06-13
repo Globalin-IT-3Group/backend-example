@@ -42,6 +42,7 @@ public class User {
 
     private String answer;
 
+    @Lob
     @Column(name = "profile_image")
     private String profileImage;
 

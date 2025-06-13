@@ -24,7 +24,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/user/join",
             "/user/check-email",
             "/user/find-email",
-            "/user/find-password"
+            "/user/find-password",
+            "/vocab-grammar/upload"
     );
 
     @Override

@@ -19,11 +19,18 @@ public class StudyRecruit {
     @Column(name = "study_room_id", nullable = false)
     private Integer studyRoomId;
 
-    @Lob
-    private String explane;
+    private String title;
 
-    @Column(name = "is_open")
-    private Boolean isOpen = false;
+    @Column(name = "study_explain", columnDefinition = "TEXT")
+    private String studyExplain;
+
+    // TODO: 멤버 카운트를 컬럼으로 갖고 있을까?
+
+    @Column(name = "view_count", columnDefinition = "integer default 0")
+    private Integer viewCount;
+
+    @Column(name = "is_open", columnDefinition = "boolean default false")
+    private Boolean isOpen;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

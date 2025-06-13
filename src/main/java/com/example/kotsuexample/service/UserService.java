@@ -175,4 +175,12 @@ public class UserService {
 
         return user.toUserResponse();
     }
+
+    public String updateProfileImage(Integer userId, String profileImage) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundByIdException("아이디 값에 따른 유저가 조회되지 않습니다."));
+        user.updateProfileImage(profileImage); // TEXT, CLOB 컬럼
+        userRepository.save(user);
+        return profileImage;
+    }
 }
