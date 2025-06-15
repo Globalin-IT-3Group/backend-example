@@ -24,12 +24,11 @@ public class VocabGrammarExcelService {
     public List<VocabGrammar> parseExcelFile(MultipartFile file) {
         List<VocabGrammar> list = new ArrayList<>();
 
-        EntryType type = null;
+        EntryType entryType = null;
         Level level = null;
         ExamType examType = null;
 
-        try (InputStream is = file.getInputStream();
-             Workbook workbook = WorkbookFactory.create(is)) {
+        try (InputStream is = file.getInputStream(); Workbook workbook = WorkbookFactory.create(is)) {
             Sheet sheet = workbook.getSheetAt(0);
 
             // i=1: 메타데이터 파싱
@@ -41,23 +40,40 @@ public class VocabGrammarExcelService {
                     String typeStr = getStringValue(row.getCell(0));
                     String levelStr = getStringValue(row.getCell(1));
                     String examTypeStr = getStringValue(row.getCell(2));
-                    type = EntryType.from(typeStr);
+                    entryType = EntryType.from(typeStr);
                     level = Level.from(levelStr);
                     examType = ExamType.from(examTypeStr);
                     continue;
                 }
 
-                VocabGrammar entity;
-                if (type == EntryType.WORD) {
-                    entity = parseWordRow(row, type, level, examType);
-                } else if (type == EntryType.GRAMMAR) {
-                    entity = parseGrammarRow(row, type, level, examType); // 직접 로직 구현
-                } else {
-                    continue; // 기타 타입 무시
-                }
+                if (entryType == EntryType.WORD) {
+                    VocabGrammar entity = parseWordRow(row, entryType, level, examType);
+                    if (entity != null) list.add(entity);
+                } else if (entryType == EntryType.GRAMMAR) {
+                    VocabGrammar entity = parseGrammarRow(row, entryType, level, examType);
+                    if (entity == null) continue;
 
-                if (entity != null) {
-                    list.add(entity);
+                    // **중복 체크 로직 (이전 마지막 데이터와 비교)**
+                    if (!list.isEmpty()) {
+                        VocabGrammar last = list.get(list.size() - 1);
+                        boolean isDuplicate =
+                                last.getJpWord().equals(entity.getJpWord()) &&
+                                        last.getMeaning().equals(entity.getMeaning()) &&
+                                        last.getEntryType() == entity.getEntryType() &&
+                                        last.getLevel() == entity.getLevel() &&
+                                        last.getExamType() == entity.getExamType();
+
+                        if (isDuplicate) {
+                            // 예문만 합치기 (중복 방지)
+                            String lastExample = last.getExample() != null ? last.getExample() : "";
+                            String newExample = entity.getExample() != null ? entity.getExample() : "";
+                            if (!lastExample.contains(newExample)) {
+                                last.setExample(lastExample.trim() + "   " + newExample.trim());
+                            }
+                            continue; // **리스트에 새로 추가하지 않음!**
+                        }
+                    }
+                    list.add(entity); // 중복 아니면 새로 추가
                 }
             }
 
@@ -72,7 +88,7 @@ public class VocabGrammarExcelService {
 
     private VocabGrammar parseWordRow(Row row, EntryType type, Level level, ExamType examType) {
         VocabGrammar entity = new VocabGrammar();
-        entity.setType(type);
+        entity.setEntryType(type);
         entity.setLevel(level);
         entity.setExamType(examType);
 
@@ -98,18 +114,17 @@ public class VocabGrammarExcelService {
     // GRAMMAR용 틀만 제공
     private VocabGrammar parseGrammarRow(Row row, EntryType type, Level level, ExamType examType) {
         VocabGrammar entity = new VocabGrammar();
-        entity.setType(type);
+        entity.setEntryType(type);
         entity.setLevel(level);
         entity.setExamType(examType);
 
-         entity.setJpWord(getStringValue(row.getCell(0)));
-         entity.setMeaning(getStringValue(row.getCell(1)));
-         entity.setExample(getStringValue(row.getCell(2)) + "   " + getStringValue(row.getCell(4)));
+        entity.setJpWord(getStringValue(row.getCell(0)));
+        entity.setMeaning(getStringValue(row.getCell(1)));
+        entity.setExample(getStringValue(row.getCell(2)) + "   " + getStringValue(row.getCell(3)));
 
         entity.setCreatedAt(LocalDateTime.now());
         return entity;
     }
-
 
     // 셀의 값을 안전하게 문자열로 변환하는 메서드 (널 처리 포함)
     private String getStringValue(Cell cell) {

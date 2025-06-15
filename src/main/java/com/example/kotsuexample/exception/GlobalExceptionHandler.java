@@ -162,6 +162,24 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponseDTO, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler
+    public ResponseEntity<ErrorResponseDTO> catchNoAuthorizationException(NoAuthorizationException e) {
+        ErrorResponseDTO errorResponseDTO = ErrorResponseDTO.builder()
+                .message(e.getMessage())
+                .build();
+
+        return new ResponseEntity<>(errorResponseDTO, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ErrorResponseDTO> catchNotFoundByParamException(NotFoundByParamException e) {
+        ErrorResponseDTO errorResponseDTO = ErrorResponseDTO.builder()
+                .message(e.getMessage())
+                .build();
+
+        return new ResponseEntity<>(errorResponseDTO, HttpStatus.NOT_FOUND);
+    }
+
     @Getter
     @NoArgsConstructor
     public static class ErrorResponseDTO {

@@ -3,7 +3,7 @@ package com.example.kotsuexample.controller;
 import com.example.kotsuexample.config.CurrentUser;
 import com.example.kotsuexample.dto.ResponseData;
 import com.example.kotsuexample.dto.UserResponse;
-import com.example.kotsuexample.exception.user.NoneInputValueException;
+import com.example.kotsuexample.exception.NoneInputValueException;
 import com.example.kotsuexample.service.FriendService;
 import com.example.kotsuexample.service.NotificationService;
 import lombok.RequiredArgsConstructor;

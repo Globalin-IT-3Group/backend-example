@@ -183,4 +183,14 @@ public class UserService {
         userRepository.save(user);
         return profileImage;
     }
+
+    public void validExistUser(Integer userId) {
+        userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundByIdException("아이디 값에 따른 유저가 조회되지 않습니다."));
+    }
+
+    public User getUserById(Integer userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundByIdException("아이디 값에 따른 유저가 조회되지 않습니다."));
+    }
 }

@@ -18,14 +18,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
     private final RedisUtil redisUtil;
 
-    private static final Set<String> WHITELIST = Set.of(
+    private static final Set<String> WHITELIST_PREFIX = Set.of(
             "/kakao/user/auth",
             "/user/login", "/favicon.ico",
             "/user/join",
             "/user/check-email",
             "/user/find-email",
             "/user/find-password",
-            "/vocab-grammar/upload"
+            "/vocab-grammar/upload",
+            "/vocab-grammar",
+            "/community"
     );
 
     @Override
@@ -33,8 +35,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String uri = request.getRequestURI();
 
         System.out.println("uri = " + uri);
-        
-        if (WHITELIST.contains(request.getRequestURI())) {
+
+        // WHITELIST 경로로 시작하는지 체크
+        boolean whitelisted = WHITELIST_PREFIX.stream().anyMatch(uri::startsWith);
+        if (whitelisted) {
             filterChain.doFilter(request, response);
             return;
         }

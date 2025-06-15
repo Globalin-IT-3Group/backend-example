@@ -19,7 +19,7 @@ spring:
       password: ${LOCAL_REDIS_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
 
   servlet:
     multipart:

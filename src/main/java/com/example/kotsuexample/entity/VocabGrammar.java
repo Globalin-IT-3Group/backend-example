@@ -19,12 +19,12 @@ public class VocabGrammar {
     private Long id;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "type", nullable = false)
-    private EntryType type;          // WORD, GRAMMAR
+    @Column(name = "entry_type", nullable = false)
+    private EntryType entryType;          // WORD, GRAMMAR
 
     @Enumerated(EnumType.STRING)
     @Column(name = "level", nullable = false)
-    private Level level;             // N1, N2, ...
+    private Level level;             // N1, N2, ..., BASIC
 
     @Enumerated(EnumType.STRING)
     @Column(name = "exam_type", nullable = false)

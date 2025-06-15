@@ -3,7 +3,7 @@ package com.example.kotsuexample.controller;
 import com.example.kotsuexample.dto.*;
 import com.example.kotsuexample.config.CurrentUser;
 import com.example.kotsuexample.exception.user.UserDuplicateException;
-import com.example.kotsuexample.exception.user.NoneInputValueException;
+import com.example.kotsuexample.exception.NoneInputValueException;
 import com.example.kotsuexample.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
