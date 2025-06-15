@@ -3,13 +3,18 @@ package com.example.kotsuexample.controller;
 import com.example.kotsuexample.config.CurrentUser;
 import com.example.kotsuexample.dto.ResponseData;
 import com.example.kotsuexample.dto.UserResponse;
+import com.example.kotsuexample.entity.Friend;
+import com.example.kotsuexample.entity.enums.FriendStatus;
 import com.example.kotsuexample.exception.NoneInputValueException;
 import com.example.kotsuexample.service.FriendService;
 import com.example.kotsuexample.service.NotificationService;
+import lombok.Builder;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -80,5 +85,35 @@ public class FriendController {
 
         Boolean accepted = friendService.acceptFriendRequest(requesterId, userId); // 요청자 → 나
         return ResponseEntity.ok(ResponseData.<Boolean>builder().data(accepted).build());
+    }
+
+    @GetMapping("/status/{targetUserId}")
+    public ResponseEntity<ResponseData<FriendDto>> getFriendStatus(
+            @CurrentUser Integer userId,
+            @PathVariable Integer targetUserId
+    ) {
+        Friend friend = friendService.getFriendRelation(userId, targetUserId); // 관계 null일 수도 있음
+        FriendDto dto = (friend != null) ? FriendDto.from(friend) : null;
+        return ResponseEntity.ok(ResponseData.<FriendDto>builder().data(dto).build());
+    }
+
+    @Getter
+    @Builder
+    public static class FriendDto {
+        private Integer id;
+        private Integer requesterId;
+        private Integer addresseeId;
+        private FriendStatus status;
+        private LocalDateTime createdAt;
+
+        public static FriendDto from(Friend friend) {
+            return FriendDto.builder()
+                    .id(friend.getId())
+                    .requesterId(friend.getRequesterId())
+                    .addresseeId(friend.getAddresseeId())
+                    .status(friend.getStatus())
+                    .createdAt(friend.getCreatedAt())
+                    .build();
+        }
     }
 }

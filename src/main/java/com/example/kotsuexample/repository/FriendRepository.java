@@ -26,4 +26,9 @@ public interface FriendRepository extends JpaRepository<Friend, Integer> {
             Integer requesterId2, Integer addresseeId2,
             FriendStatus status
     );
+
+    @Query("SELECT f FROM Friend f WHERE " +
+            "(f.requesterId = :userId AND f.addresseeId = :targetUserId) " +
+            "OR (f.requesterId = :targetUserId AND f.addresseeId = :userId)")
+    Optional<Friend> findRelation(@Param("userId") Integer userId, @Param("targetUserId") Integer targetUserId);
 }

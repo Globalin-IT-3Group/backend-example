@@ -87,4 +87,10 @@ public class FriendService {
         friendRepository.save(friend);
         return true;
     }
+
+    public Friend getFriendRelation(Integer userId, Integer targetUserId) {
+        if (userId.equals(targetUserId)) return null;
+
+        return friendRepository.findRelation(userId, targetUserId).orElse(null);
+    }
 }
