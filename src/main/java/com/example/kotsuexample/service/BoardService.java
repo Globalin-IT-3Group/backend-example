@@ -63,4 +63,8 @@ public class BoardService {
 
         boardRepository.deleteById(foundedBoard.getId());
     }
+
+    public Page<Board> getBoardsByUser(Integer userId, Pageable pageable) {
+        return boardRepository.findByUserId(userId, pageable);
+    }
 }

@@ -37,30 +37,39 @@ public class BoardController {
     }
 
     // 상세 조회 + 조회수 증가
-    @GetMapping("/{id}")
-    public ResponseEntity<Board> getBoard(@PathVariable Integer id) {
-        boardService.increaseViewCount(id);
-        return boardService.getBoardById(id)
+    @GetMapping("/{boardId}")
+    public ResponseEntity<Board> getBoard(@PathVariable Integer boardId) {
+        boardService.increaseViewCount(boardId);
+        return boardService.getBoardById(boardId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
 
     // 게시글 수정
-    @PutMapping("/{id}")
+    @PutMapping("/{boardId}")
     public ResponseEntity<Board> updateBoard(
-            @PathVariable Integer id,
+            @PathVariable Integer boardId,
             @CurrentUser Integer userId,
             @RequestBody Board board) {
-        Board updated = boardService.updateBoard(id, userId, board.getTitle(), board.getContent());
+        Board updated = boardService.updateBoard(boardId, userId, board.getTitle(), board.getContent());
         return ResponseEntity.ok(updated);
     }
 
     // 게시글 삭제
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{boardId}")
     public ResponseEntity<Void> deleteBoard(
-            @PathVariable Integer id,
+            @PathVariable Integer boardId,
             @CurrentUser Integer userId) {
-        boardService.deleteBoard(id, userId);
+        boardService.deleteBoard(boardId, userId);
         return ResponseEntity.noContent().build();
+    }
+
+    // 내 거
+    @GetMapping("/my")
+    public ResponseEntity<Page<Board>> getMyBoards(
+            @CurrentUser Integer userId,
+            Pageable pageable
+    ) {
+        return ResponseEntity.ok(boardService.getBoardsByUser(userId, pageable));
     }
 }
