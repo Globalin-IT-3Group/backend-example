@@ -24,6 +24,7 @@ public class Notification {
     @Column(name = "sender_id", nullable = false)
     private Integer senderId; // ✅ 누가 보냈는지
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private NotificationType type;
 

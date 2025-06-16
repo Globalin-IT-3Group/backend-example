@@ -23,13 +23,19 @@ public class SseService {
     }
 
     public void send(Integer receiverId, NotificationType type, Object data) {
+
+        System.out.println("에스에스이 센드 메서드 호출");
+
         SseEmitter emitter = emitters.get(receiverId);
         if (emitter != null) {
             try {
                 emitter.send(SseEmitter.event()
                         .name(type.name().toLowerCase()) // ex: "friend", "study", "system", "chat"
                         .data(data));
+
+                System.out.println("보내짐!!");
             } catch (IOException e) {
+                System.out.println("아 시발 ㅋㅋ");
                 emitters.remove(receiverId);
             }
         }

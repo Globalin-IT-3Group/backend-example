@@ -1,6 +1,7 @@
 package com.example.kotsuexample.controller;
 
 import com.example.kotsuexample.config.CurrentUser;
+import com.example.kotsuexample.dto.BoardListDTO;
 import com.example.kotsuexample.entity.Board;
 import com.example.kotsuexample.service.BoardService;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +33,7 @@ public class BoardController {
 //    조회순:
 //            /boards?page=0&size=10&sort=viewCount,desc
     @GetMapping // ex) /boards?page=0&size=10&sort=createdAt,desc or sort=viewCount,desc
-    public ResponseEntity<Page<Board>> getBoards(Pageable pageable) {
+    public ResponseEntity<Page<BoardListDTO>> getBoards(Pageable pageable) {
         return ResponseEntity.ok(boardService.getBoardPage(pageable));
     }
 

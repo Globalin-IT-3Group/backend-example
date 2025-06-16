@@ -1,5 +1,6 @@
 package com.example.kotsuexample.service;
 
+import com.example.kotsuexample.dto.CommentDTO;
 import com.example.kotsuexample.entity.Board;
 import com.example.kotsuexample.entity.Comment;
 import com.example.kotsuexample.entity.User;
@@ -11,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -52,5 +55,12 @@ public class CommentService {
             throw new NoAuthorizationException("삭제할 권한이 없습니다.");
         }
         commentRepository.delete(comment);
+    }
+
+    public List<CommentDTO> getCommentsByBoardId(Integer boardId) {
+        List<Comment> comments = commentRepository.findAllByBoardIdOrderByCreatedAtAsc(boardId);
+        return comments.stream()
+                .map(CommentDTO::fromEntity)
+                .collect(Collectors.toList());
     }
 }

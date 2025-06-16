@@ -17,6 +17,7 @@ public class SseController {
 
     @GetMapping("/subscribe")
     public SseEmitter subscribe(@CurrentUser Integer userId) {
+        System.out.println("에스에스이 userId = " + userId);
         return sseService.subscribe(userId);
     }
 }

@@ -10,6 +10,9 @@ import com.example.kotsuexample.exception.NotificationNotFoundException;
 import com.example.kotsuexample.repository.NotificationRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -24,6 +27,8 @@ public class NotificationService {
     private final UserService userService;
 
     public void notifyFriendRequest(Integer senderId, Integer receiverId, String content) {
+
+        System.out.println("notifyFriendRequest 메서드 호출");
 
         // 1. DB 저장
         Notification notification = Notification.builder()
@@ -47,23 +52,23 @@ public class NotificationService {
         sseService.send(receiverId, NotificationType.FRIEND, dto);
     }
 
-    public List<NotificationResponse> getNotifications(Integer userId) {
-        return notificationRepository.findByUserIdOrderByCreatedAtDesc(userId)
-                .stream()
-                .map(notification -> {
-                    UserResponse sender = userService.getSimpleUserInfoById(notification.getSenderId());
-
-                    return NotificationResponse.builder()
-                            .id(notification.getId())
-                            .type(notification.getType())
-                            .content(notification.getContent())
-                            .isRead(notification.isRead())
-                            .createdAt(notification.getCreatedAt())
-                            .sender(sender)
-                            .build();
-                })
-                .toList();
-    }
+//    public List<NotificationResponse> getNotifications(Integer userId) {
+//        return notificationRepository.findByUserIdOrderByCreatedAtDesc(userId, pageRequest)
+//                .stream()
+//                .map(notification -> {
+//                    UserResponse sender = userService.getSimpleUserInfoById(notification.getSenderId());
+//
+//                    return NotificationResponse.builder()
+//                            .id(notification.getId())
+//                            .type(notification.getType())
+//                            .content(notification.getContent())
+//                            .isRead(notification.isRead())
+//                            .createdAt(notification.getCreatedAt())
+//                            .sender(sender)
+//                            .build();
+//                })
+//                .toList();
+//    }
 
     public void deleteNotification(Integer userId, Integer notificationId) {
         Notification notification = notificationRepository.findById(notificationId)
@@ -98,5 +103,25 @@ public class NotificationService {
 
     public int countUnread(Integer userId) {
         return notificationRepository.countByUserIdAndIsReadFalse(userId);
+    }
+
+    public Page<NotificationResponse> getNotificationsPage(Integer userId, int page, int size, String sort) {
+        String[] sortArr = sort.split(",");
+        Sort.Direction direction = sortArr.length > 1 && sortArr[1].equalsIgnoreCase("asc") ? Sort.Direction.ASC : Sort.Direction.DESC;
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortArr[0]));
+
+        // JPA에서 Page<Notification> 조회 → DTO 변환
+        return notificationRepository.findByUserIdOrderByCreatedAtDesc(userId, pageRequest)
+                .map(notification -> {
+                    UserResponse sender = userService.getSimpleUserInfoById(notification.getSenderId());
+                    return NotificationResponse.builder()
+                            .id(notification.getId())
+                            .type(notification.getType())
+                            .content(notification.getContent())
+                            .isRead(notification.isRead())
+                            .createdAt(notification.getCreatedAt())
+                            .sender(sender)
+                            .build();
+                });
     }
 }

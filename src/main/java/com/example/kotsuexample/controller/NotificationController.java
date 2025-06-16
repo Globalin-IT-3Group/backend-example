@@ -4,6 +4,7 @@ import com.example.kotsuexample.config.CurrentUser;
 import com.example.kotsuexample.dto.NotificationResponse;
 import com.example.kotsuexample.service.NotificationService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,11 +17,11 @@ public class NotificationController {
 
     private final NotificationService notificationService;
 
-    @GetMapping("/")
-    public ResponseEntity<List<NotificationResponse>> getAllNotifications(@CurrentUser Integer userId) {
-        List<NotificationResponse> responses = notificationService.getNotifications(userId);
-        return ResponseEntity.ok(responses);
-    }
+//    @GetMapping("/")
+//    public ResponseEntity<List<NotificationResponse>> getAllNotifications(@CurrentUser Integer userId) {
+//        List<NotificationResponse> responses = notificationService.getNotifications(userId);
+//        return ResponseEntity.ok(responses);
+//    }
 
     @DeleteMapping("/{notificationId}")
     public ResponseEntity<Void> deleteNotification(@CurrentUser Integer userId, @PathVariable Integer notificationId) {
@@ -46,4 +47,16 @@ public class NotificationController {
         int count = notificationService.countUnread(userId);
         return ResponseEntity.ok(count);
     }
+
+    @GetMapping("/page")
+    public ResponseEntity<Page<NotificationResponse>> getNotificationsPage(
+            @CurrentUser Integer userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt,desc") String sort
+    ) {
+        Page<NotificationResponse> responses = notificationService.getNotificationsPage(userId, page, size, sort);
+        return ResponseEntity.ok(responses);
+    }
+
 }

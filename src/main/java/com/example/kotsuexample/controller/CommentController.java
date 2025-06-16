@@ -1,10 +1,13 @@
 package com.example.kotsuexample.controller;
 
+import com.example.kotsuexample.dto.CommentDTO;
 import com.example.kotsuexample.entity.Comment;
 import com.example.kotsuexample.service.CommentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -39,5 +42,12 @@ public class CommentController {
             @RequestParam Integer userId) {
         commentService.deleteComment(commentId, userId);
         return ResponseEntity.ok().build();
+    }
+
+    // ✅ 댓글 목록 조회 (특정 게시글 기준)
+    @GetMapping("/list")
+    public ResponseEntity<List<CommentDTO>> getCommentsByBoardId(@RequestParam Integer boardId) {
+        List<CommentDTO> comments = commentService.getCommentsByBoardId(boardId);
+        return ResponseEntity.ok(comments);
     }
 }
