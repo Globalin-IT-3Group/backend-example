@@ -27,7 +27,7 @@ public class ChatReadService {
 
     // 읽음 처리
     @Transactional
-    public void markChatAsRead(Integer roomId, Integer userId) {
+    public void markChatAsRead(Integer roomId, Integer userId, LocalDateTime lastReadAt) {
         ChatReadStatus status = chatReadStatusRepository
                 .findByChatRoomIdAndUserId(roomId, userId)
                 .orElse(ChatReadStatus.builder()
@@ -35,7 +35,7 @@ public class ChatReadService {
                         .userId(userId)
                         .build());
 
-        status.updateLastReadAt(LocalDateTime.now());
+        status.updateLastReadAt(lastReadAt);
         chatReadStatusRepository.save(status);
     }
 
@@ -44,7 +44,7 @@ public class ChatReadService {
         LocalDateTime lastRead = chatReadStatusRepository
                 .findByChatRoomIdAndUserId(roomId, userId)
                 .map(ChatReadStatus::getLastReadAt)
-                .orElse(LocalDateTime.MIN);
+                .orElse(LocalDateTime.now());
 
         return chatMessageRepository.countByChatRoomIdAndSentAtAfterAndSenderIdNot(
                 roomId, lastRead, userId);

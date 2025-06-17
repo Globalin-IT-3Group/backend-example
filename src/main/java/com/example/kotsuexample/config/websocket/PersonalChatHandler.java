@@ -11,6 +11,8 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+import java.time.LocalDateTime;
+
 @Component
 @RequiredArgsConstructor
 public class PersonalChatHandler extends TextWebSocketHandler {
@@ -28,7 +30,7 @@ public class PersonalChatHandler extends TextWebSocketHandler {
         sessionManager.addSession(roomId, session);
 
         // 읽음 처리
-        chatReadService.markChatAsRead(Integer.valueOf(roomId), Integer.valueOf(userId));
+        chatReadService.markChatAsRead(Integer.valueOf(roomId), Integer.valueOf(userId), LocalDateTime.now());
     }
 
     @Override

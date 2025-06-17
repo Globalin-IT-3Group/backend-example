@@ -5,8 +5,10 @@ import com.example.kotsuexample.dto.ChatMessageDTO;
 import com.example.kotsuexample.dto.SseNotificationDTO;
 import com.example.kotsuexample.dto.UserResponse;
 import com.example.kotsuexample.entity.ChatMessage;
+import com.example.kotsuexample.entity.enums.MessageType;
 import com.example.kotsuexample.entity.enums.NotificationType;
 import com.example.kotsuexample.repository.ChatMessageRepository;
+import com.example.kotsuexample.service.ChatReadService;
 import com.example.kotsuexample.service.ChatRoomService;
 import com.example.kotsuexample.service.SseService;
 import com.example.kotsuexample.service.UserService;
@@ -19,6 +21,9 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.List;
 
 @Component
@@ -31,6 +36,7 @@ public class RedisSubscriber implements MessageListener {
     private final SseService sseService;
     private final ChatRoomService chatRoomService;
     private final UserService userService;
+    private final ChatReadService chatReadService;
 
     @Override
     public void onMessage(Message message, byte[] pattern) {
@@ -47,13 +53,27 @@ public class RedisSubscriber implements MessageListener {
             // 4. JSON → DTO 역직렬화
             ChatMessageDTO dto = objectMapper.readValue(payload, ChatMessageDTO.class);
 
+            OffsetDateTime odt = OffsetDateTime.parse(dto.getSentAt());
+            LocalDateTime kst = odt.atZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime();
+
+            if (dto.getMessageType() == MessageType.READ) {
+                chatReadService.markChatAsRead(dto.getChatRoomId(), dto.getSenderId(), kst);
+                // 그대로 다른 사용자들에게 전파
+                for (WebSocketSession session : sessionManager.getSessions(roomId)) {
+                    if (session.isOpen()) {
+                        session.sendMessage(new TextMessage(payload));
+                    }
+                }
+                return;
+            }
+
             // 5. DB에 채팅 내역 저장 (MySQL)
             ChatMessage chatMessage = ChatMessage.builder()
                     .chatRoomId(dto.getChatRoomId())
                     .senderId(dto.getSenderId())
                     .messageType(dto.getMessageType())
                     .message(dto.getMessage())
-                    .sentAt(dto.getSentAt())
+                    .sentAt(kst) // <= 변환!
                     .build();
 
             chatMessageRepository.save(chatMessage);
@@ -76,7 +96,7 @@ public class RedisSubscriber implements MessageListener {
                             .type(NotificationType.CHAT)
                             .sender(sender)
                             .roomId(dto.getChatRoomId())
-                            .createdAt(dto.getSentAt())
+                            .createdAt(kst)
                             .build();
 
                     sseService.send(targetId, NotificationType.CHAT, notification);

@@ -1,6 +1,7 @@
 package com.example.kotsuexample.controller;
 
-import com.example.kotsuexample.entity.ChatMessage;
+import com.example.kotsuexample.config.CurrentUser;
+import com.example.kotsuexample.dto.ChatMessageDTO;
 import com.example.kotsuexample.service.ChatMessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,8 +20,9 @@ public class ChatMessageController {
     private final ChatMessageService chatMessageService;
 
     @GetMapping("/rooms/{roomId}/messages")
-    public ResponseEntity<List<ChatMessage>> getChatMessages(@PathVariable Integer roomId) {
-        List<ChatMessage> messages = chatMessageService.getChatMessages(roomId);
-        return ResponseEntity.ok(messages);
+    public ResponseEntity<List<ChatMessageDTO>> getChatMessages(@CurrentUser Integer userId,
+                                                                @PathVariable Integer roomId) {
+        List<ChatMessageDTO> dtos = chatMessageService.getChatMessagesWithReadStatus(roomId, userId);
+        return ResponseEntity.ok(dtos);
     }
 }

@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -44,5 +45,11 @@ public class ChatRoomController {
     public ResponseEntity<List<ChatRoomSummary>> getAllChatRoomSummaries(@CurrentUser Integer userId) {
         List<ChatRoomSummary> summaries = chatReadService.getAllChatRoomSummaries(userId);
         return ResponseEntity.ok(summaries);
+    }
+
+    @PostMapping("/{roomId}/read")
+    public ResponseEntity<Void> markAsRead(@PathVariable Integer roomId, @CurrentUser Integer userId) {
+        chatReadService.markChatAsRead(roomId, userId, LocalDateTime.now());
+        return ResponseEntity.ok().build();
     }
 }

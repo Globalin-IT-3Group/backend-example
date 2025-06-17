@@ -1,17 +1,21 @@
 package com.example.kotsuexample.dto;
 
 import com.example.kotsuexample.entity.enums.MessageType;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 @Getter
 @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class ChatMessageDTO {
+    private Integer id;
     private Integer chatRoomId;
     private Integer senderId;
-    private MessageType messageType; // TEXT, IMAGE, FILE 등
-    private String message; // 텍스트 또는 파일 URL
-    private LocalDateTime sentAt = LocalDateTime.now();
+    private String message;
+    private MessageType messageType;
+    private String sentAt;
+    private Boolean isRead; // (옵션)
 }
