@@ -15,4 +15,5 @@ public class StudyRoomSummaryDto {
     private Set<StudyTag> tags;
     private Integer currentMemberCount;
     private Integer maxUserCount;
+    private Integer leaderId;
 }

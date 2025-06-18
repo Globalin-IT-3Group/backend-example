@@ -4,6 +4,7 @@ import com.example.kotsuexample.dto.study.*;
 import com.example.kotsuexample.entity.StudyRoom;
 import com.example.kotsuexample.entity.StudyRoomMember;
 import com.example.kotsuexample.entity.User;
+import com.example.kotsuexample.exception.NoneInputValueException;
 import com.example.kotsuexample.repository.StudyRoomMemberRepository;
 import com.example.kotsuexample.repository.StudyRoomRepository;
 import com.example.kotsuexample.repository.UserRepository;
@@ -65,8 +66,8 @@ public class StudyRoomService {
 
 
     // 2. 목록 조회
-    public List<StudyRoomSummaryDto> getStudyRoomList() {
-        List<StudyRoom> rooms = studyRoomRepository.findAll();
+    public List<StudyRoomSummaryDto> getStudyRoomList(Integer userId) {
+        List<StudyRoom> rooms = studyRoomRepository.findAllByMemberUserId(userId);
 
         return rooms.stream().map(room -> StudyRoomSummaryDto.builder()
                         .id(room.getId())
@@ -75,14 +76,18 @@ public class StudyRoomService {
                         .tags(room.getTags())
                         .currentMemberCount(studyRoomMemberRepository.countByStudyRoom(room))
                         .maxUserCount(room.getMaxUserCount())
+                        .leaderId(room.getLeader().getId())
                         .build())
                 .collect(Collectors.toList());
     }
 
     // 3. 상세 조회
-    public StudyRoomDetailDto getStudyRoom(Integer id) {
+    public StudyRoomDetailDto getStudyRoom(Integer userId, Integer id) {
         StudyRoom room = studyRoomRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("스터디룸이 존재하지 않습니다."));
+
+        boolean isMember = studyRoomMemberRepository.existsByStudyRoomAndUserId(room, userId);
+        if (!isMember) throw new NoneInputValueException("멤버가 아니라서 접근 권한이 없습니다!");
 
         int memberCount = studyRoomMemberRepository.countByStudyRoom(room);
 

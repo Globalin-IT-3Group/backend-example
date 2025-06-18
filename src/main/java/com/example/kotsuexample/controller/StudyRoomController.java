@@ -25,16 +25,16 @@ public class StudyRoomController {
         return ResponseEntity.ok(studyRoomService.createStudyRoom(userId, dto));
     }
 
-    // 2. 스터디룸 목록 조회 (인증 없이도 가능)
+    // 2. 스터디룸 목록 조회
     @GetMapping
-    public ResponseEntity<List<StudyRoomSummaryDto>> getStudyRoomList() {
-        return ResponseEntity.ok(studyRoomService.getStudyRoomList());
+    public ResponseEntity<List<StudyRoomSummaryDto>> getStudyRoomList(@CurrentUser Integer userId) {
+        return ResponseEntity.ok(studyRoomService.getStudyRoomList(userId));
     }
 
-    // 3. 스터디룸 상세 조회 (인증 없이도 가능)
+    // 3. 스터디룸 상세 조회
     @GetMapping("/{id}")
-    public ResponseEntity<StudyRoomDetailDto> getStudyRoom(@PathVariable Integer id) {
-        return ResponseEntity.ok(studyRoomService.getStudyRoom(id));
+    public ResponseEntity<StudyRoomDetailDto> getStudyRoom(@CurrentUser Integer userId, @PathVariable Integer id) {
+        return ResponseEntity.ok(studyRoomService.getStudyRoom(userId, id));
     }
 
     // 4. 스터디룸 정보 수정 (리더만 가능하도록!)

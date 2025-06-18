@@ -6,4 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface StudyRoomMemberRepository extends JpaRepository<StudyRoomMember, Integer> {
     int countByStudyRoom(StudyRoom studyRoom);
+
+    boolean existsByStudyRoomAndUserId(StudyRoom room, Integer userId);
 }
