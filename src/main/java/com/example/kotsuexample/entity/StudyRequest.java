@@ -17,11 +17,13 @@ public class StudyRequest {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "user_id", nullable = false)
-    private Integer userId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-    @Column(name = "study_recruit_id", nullable = false)
-    private Integer studyRecruitId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "study_recruit_id", nullable = false)
+    private StudyRecruit studyRecruit;
 
     @Lob
     private String message;

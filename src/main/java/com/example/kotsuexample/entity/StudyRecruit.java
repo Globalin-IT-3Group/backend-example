@@ -16,15 +16,14 @@ public class StudyRecruit {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "study_room_id", nullable = false)
-    private Integer studyRoomId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "study_room_id", nullable = false)
+    private StudyRoom studyRoom;
 
     private String title;
 
     @Column(name = "study_explain", columnDefinition = "TEXT")
     private String studyExplain;
-
-    // TODO: 멤버 카운트를 컬럼으로 갖고 있을까?
 
     @Column(name = "view_count", columnDefinition = "integer default 0")
     private Integer viewCount;
