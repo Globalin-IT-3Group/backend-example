@@ -1,6 +1,5 @@
 package com.example.kotsuexample.controller;
 
-import com.example.kotsuexample.config.CurrentUser;
 import com.example.kotsuexample.entity.VocabGrammar;
 import com.example.kotsuexample.entity.enums.EntryType;
 import com.example.kotsuexample.entity.enums.ExamType;
@@ -24,16 +23,11 @@ public class VocabController {
 
     @GetMapping
     public ResponseEntity<Page<VocabGrammar>> getVocabGrammars(
-//            @CurrentUser Integer userId,
             @RequestParam EntryType entryType,
             @RequestParam Level level,
             @RequestParam ExamType examType,
             @PageableDefault Pageable pageable) {
-
-//        userService.validExistUser(userId);
-
         Page<VocabGrammar> page = vocabService.getVocabGrammarsByParams(entryType, level, examType, pageable);
-
         return ResponseEntity.ok(page);
     }
 

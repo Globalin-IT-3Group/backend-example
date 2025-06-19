@@ -41,6 +41,7 @@ public class InquiryController {
             @PathVariable Integer id,
             @CurrentUser Integer adminId,
             @RequestBody InquiryReplyDTO dto) {
+        System.out.println(dto.getAdminReply());
         inquiryService.replyToInquiry(id, adminId, dto);
         // 알림 서비스 호출 등 (예: notificationService.notifyUser(...))
     }
