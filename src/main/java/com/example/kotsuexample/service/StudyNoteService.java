@@ -4,6 +4,8 @@ import com.example.kotsuexample.dto.study.*;
 import com.example.kotsuexample.entity.*;
 import com.example.kotsuexample.repository.StudyNoteRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,11 +25,12 @@ public class StudyNoteService {
 
     // 노트 목록 조회 (스터디방 단위)
     @Transactional(readOnly = true)
-    public List<StudyNoteDTO> getNotes(Integer roomId) {
-        List<StudyNote> notes = studyNoteRepository.findByStudyRoomId(roomId);
-        return notes.stream()
-                .map(StudyNoteDTO::fromEntity)
-                .toList();
+    public Page<StudyNoteDTO> getNotes(Integer roomId, Integer userId, Pageable pageable) {
+        Page<StudyNote> notes = studyNoteRepository.findByStudyRoomId(roomId, pageable);
+        return notes.map(note -> {
+            boolean hearted = heartService.isHeartedByUser(note.getId(), userId); // 각 노트별로
+            return StudyNoteDTO.fromEntity(note, hearted);
+        });
     }
 
     // 노트 상세 조회 (hearted: 내가 좋아요 눌렀는지)

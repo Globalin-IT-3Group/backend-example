@@ -4,6 +4,8 @@ import com.example.kotsuexample.config.CurrentUser;
 import com.example.kotsuexample.dto.study.*;
 import com.example.kotsuexample.service.StudyNoteService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,8 +19,12 @@ public class StudyNoteController {
 
     // 노트 목록
     @GetMapping("/rooms/{roomId}")
-    public List<StudyNoteDTO> getNotes(@PathVariable Integer roomId) {
-        return studyNoteService.getNotes(roomId);
+    public Page<StudyNoteDTO> getNotes(
+            @PathVariable Integer roomId,
+            @CurrentUser Integer userId,
+            Pageable pageable
+    ) {
+        return studyNoteService.getNotes(roomId, userId, pageable);
     }
 
     // 노트 상세
