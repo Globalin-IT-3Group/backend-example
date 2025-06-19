@@ -22,6 +22,7 @@ public class Note {
 
     private String title;
 
+    @Lob
     private String content;
 
     @Column(name = "created_at")

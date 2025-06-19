@@ -91,6 +91,15 @@ public class StudyRoomService {
 
         int memberCount = studyRoomMemberRepository.countByStudyRoom(room);
 
+        List<StudyRoomMemberDto> members = room.getMembers().stream()
+                .map(member -> StudyRoomMemberDto.builder()
+                        .userId(member.getUser().getId())
+                        .nickname(member.getUser().getNickname())
+                        .profileImageUrl(member.getUser().getProfileImage())
+                        .isLeader(member.getUser().getId().equals(room.getLeader().getId()))
+                        .build())
+                .toList();
+
         return StudyRoomDetailDto.builder()
                 .id(room.getId())
                 .name(room.getName())
@@ -102,6 +111,7 @@ public class StudyRoomService {
                 .tags(room.getTags())
                 .leaderId(room.getLeader().getId())
                 .createdAt(room.getCreatedAt())
+                .members(members)
                 .build();
     }
 
@@ -153,5 +163,10 @@ public class StudyRoomService {
                 .leaderId(room.getLeader().getId())
                 .createdAt(room.getCreatedAt())
                 .build();
+    }
+
+    public StudyRoom getStudyRoomEntity(Integer studyRoomId) {
+        return studyRoomRepository.findById(studyRoomId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 스터디방이 존재하지 않습니다."));
     }
 }
