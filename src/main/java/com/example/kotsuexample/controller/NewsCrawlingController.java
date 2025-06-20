@@ -51,10 +51,17 @@ public class NewsCrawlingController {
             for (int i = 0; i < Math.min(lis.size(), 8); i++) {
                 Element li = lis.get(i);
 
-                // 예시: 제목, 링크, 썸네일 등 추출 (구조에 따라 수정)
-                String title = li.text();
-                String link = li.selectFirst("a") != null ? li.selectFirst("a").absUrl("href") : "";
-                String image = li.selectFirst("img") != null ? li.selectFirst("img").absUrl("src") : "";
+                // 1. 링크(a)
+                Element a = li.selectFirst("a");
+                String link = a != null ? a.absUrl("href") : "";
+
+                // 2. 이미지(img)
+                Element img = li.selectFirst("figure img");
+                String image = img != null ? img.absUrl("data-src") : "";
+
+                // 3. 제목(em)
+                Element em = li.selectFirst("em.title");
+                String title = em != null ? em.text() : "";
 
                 result.add(new NewsItem(title, link, image));
             }
