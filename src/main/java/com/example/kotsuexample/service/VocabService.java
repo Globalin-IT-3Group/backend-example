@@ -1,5 +1,6 @@
 package com.example.kotsuexample.service;
 
+import com.example.kotsuexample.dto.SimpleVocabDTO;
 import com.example.kotsuexample.entity.VocabGrammar;
 import com.example.kotsuexample.entity.enums.EntryType;
 import com.example.kotsuexample.entity.enums.ExamType;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -37,5 +39,21 @@ public class VocabService {
                 .orElseThrow(() -> new NoneInputValueException("아이디 값에 따른 단어가 조회되지 않습니다."));
         vg.setExample(example);
         // JPA는 트랜잭션 내에서 변경 감지하여 자동 업데이트
+    }
+
+    public List<SimpleVocabDTO> getRandomSimpleVocab9() {
+        List<VocabGrammar> vocabList = vocabGrammarRepository.findRandomNine();
+        return vocabList.stream()
+                .map(v -> SimpleVocabDTO.builder()
+                        .entryType(v.getEntryType())
+                        .level(v.getLevel())
+                        .examType(v.getExamType())
+                        .jpWord(v.getJpWord())
+                        .hiragana(v.getHiragana())
+                        .altForm(v.getAltForm())
+                        .pos(v.getPos())
+                        .meaning(v.getMeaning())
+                        .build())
+                .collect(Collectors.toList());
     }
 }
