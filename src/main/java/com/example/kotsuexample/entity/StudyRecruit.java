@@ -1,7 +1,7 @@
 package com.example.kotsuexample.entity;
 
+import com.example.kotsuexample.dto.study.StudyRecruitSaveRequestDTO;
 import jakarta.persistence.*;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -36,4 +36,14 @@ public class StudyRecruit {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    public StudyRecruitSaveRequestDTO toStudyRecruitSaveRequestDTO(Integer studyRoomId) {
+        return StudyRecruitSaveRequestDTO.builder()
+                .id(this.id)
+                .studyRoomId(studyRoomId)
+                .isOpen(this.isOpen)
+                .studyExplain(this.studyExplain)
+                .title(this.title)
+                .build();
+    }
 }

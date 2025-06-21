@@ -7,6 +7,7 @@ import com.example.kotsuexample.service.StudyRecruitService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -36,6 +37,15 @@ public class StudyRecruitController {
         return studyRecruitService.searchStudyRecruitsByTitle(title, pageable);
     }
 
+    // 스터디 방에서 모집글 조회
+    @GetMapping("/{studyRoomId}")
+    public ResponseEntity<StudyRecruitSaveRequestDTO> getStudyRecruitInStudyRoom(
+            @PathVariable Integer studyRoomId) {
+
+        StudyRecruitSaveRequestDTO response = studyRecruitService.getStudyRecruitInStudyRoom(studyRoomId);
+        return ResponseEntity.ok(response);
+    }
+
     // 모집글 생성
     @PostMapping
     public StudyRecruitDTO createRecruit(@RequestBody StudyRecruitSaveRequestDTO dto) {
@@ -49,5 +59,12 @@ public class StudyRecruitController {
             @RequestBody StudyRecruitSaveRequestDTO dto
     ) {
         return studyRecruitService.updateStudyRecruit(recruitId, dto);
+    }
+
+    // 모집글 viewCount 증가
+    @PatchMapping("/{recruitId}/view")
+    public ResponseEntity<Void> increaseViewCount(@PathVariable Integer recruitId) {
+        studyRecruitService.increaseViewCount(recruitId);
+        return ResponseEntity.ok().build();
     }
 }

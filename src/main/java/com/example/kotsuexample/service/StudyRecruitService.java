@@ -69,4 +69,18 @@ public class StudyRecruitService {
         studyRecruitRepository.save(entity);
         return StudyRecruitDTO.fromEntity(entity);
     }
+
+    public StudyRecruitSaveRequestDTO getStudyRecruitInStudyRoom(Integer studyRoomId) {
+        StudyRoom studyRoom = studyRoomRepository.findById(studyRoomId)
+                .orElseThrow(() -> new IllegalArgumentException("스터디방을 찾을 수 없습니다."));
+
+        return studyRoom.getStudyRecruit().toStudyRecruitSaveRequestDTO(studyRoomId);
+    }
+
+    public void increaseViewCount(Integer recruitId) {
+        StudyRecruit recruit = studyRecruitRepository.findById(recruitId)
+                .orElseThrow(() -> new IllegalArgumentException("모집글을 찾을 수 없습니다."));
+        recruit.setViewCount(recruit.getViewCount() + 1);
+        studyRecruitRepository.save(recruit);
+    }
 }
