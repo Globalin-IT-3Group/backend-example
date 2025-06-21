@@ -50,6 +50,9 @@ public class StudyRoom {
     @OneToMany(mappedBy = "studyRoom", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<StudyRoomMember> members = new ArrayList<>();
 
+    @OneToOne(mappedBy = "studyRoom", fetch = FetchType.LAZY)
+    private StudyRecruit studyRecruit;
+
     @Builder
     public StudyRoom(String name, String rule, String notice, String imageUrl, User leader, Set<StudyTag> tags, LocalDateTime createdAt, Integer maxUserCount) {
         this.name = name;

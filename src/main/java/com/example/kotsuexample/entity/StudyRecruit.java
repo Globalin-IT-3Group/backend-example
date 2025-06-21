@@ -1,14 +1,17 @@
 package com.example.kotsuexample.entity;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "study_recruits")
 @Getter
+@Setter
 @NoArgsConstructor
 public class StudyRecruit {
 
@@ -16,8 +19,8 @@ public class StudyRecruit {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "study_room_id", nullable = false)
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "study_room_id", nullable = false, unique = true)
     private StudyRoom studyRoom;
 
     private String title;
