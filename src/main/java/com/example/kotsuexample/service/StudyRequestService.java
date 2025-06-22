@@ -1,6 +1,5 @@
 package com.example.kotsuexample.service;
 
-import com.example.kotsuexample.dto.UserResponse;
 import com.example.kotsuexample.dto.study.StudyRequestCreateDTO;
 import com.example.kotsuexample.dto.study.StudyRequestResponse;
 import com.example.kotsuexample.entity.*;
@@ -9,6 +8,9 @@ import com.example.kotsuexample.repository.StudyRecruitRepository;
 import com.example.kotsuexample.repository.StudyRequestRepository;
 import com.example.kotsuexample.repository.StudyRoomMemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,9 +53,11 @@ public class StudyRequestService {
 
     // 2. 내가 신청한 전체 내역
     @Transactional(readOnly = true)
-    public List<StudyRequestResponse> getMyStudyRequests(Integer userId) {
-        List<StudyRequest> requests = studyRequestRepository.findByUserIdOrderByRequestedAtDesc(userId);
-        return requests.stream().map(this::toResponse).toList();
+    public Page<StudyRequestResponse> getMyStudyRequests(Integer userId, int page, int size) {
+        Page<StudyRequest> requests = studyRequestRepository.findByUserId(
+                userId, PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "requestedAt"))
+        );
+        return requests.map(StudyRequestResponse::from);
     }
 
     // 3. 내가 특정 모집글에 신청한 내역 단건
@@ -62,7 +66,7 @@ public class StudyRequestService {
         StudyRequest req = studyRequestRepository
                 .findByUserIdAndStudyRecruitId(userId, studyRecruitId)
                 .orElseThrow(() -> new IllegalArgumentException("신청 내역 없음"));
-        return toResponse(req);
+        return StudyRequestResponse.from(req);
     }
 
     // 4. 신청 취소
@@ -78,15 +82,17 @@ public class StudyRequestService {
 
     // 5. 리더가 모집글에 지원한 전체 내역 조회
     @Transactional(readOnly = true)
-    public List<StudyRequestResponse> getRequestsByRecruit(Integer userId, Integer studyRecruitId) {
+    public Page<StudyRequestResponse> getRequestsByRecruit(Integer leaderId, Integer studyRecruitId, int page, int size) {
         StudyRecruit recruit = studyRecruitRepository.findById(studyRecruitId)
                 .orElseThrow(() -> new IllegalArgumentException("모집글 없음"));
         // 권한 체크
-        if (!recruit.getLeader().getId().equals(userId)) {
+        if (!recruit.getLeader().getId().equals(leaderId)) {
             throw new SecurityException("리더만 조회 가능");
         }
-        List<StudyRequest> requests = studyRequestRepository.findByStudyRecruitIdOrderByRequestedAtDesc(studyRecruitId);
-        return requests.stream().map(this::toResponse).toList();
+        Page<StudyRequest> requests = studyRequestRepository.findByStudyRecruitId(
+                studyRecruitId, PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "requestedAt"))
+        );
+        return requests.map(StudyRequestResponse::from);
     }
 
     // 6. 리더가 지원 요청 승인/거절
@@ -121,24 +127,6 @@ public class StudyRequestService {
             }
         }
         // save 생략 (영속성 컨텍스트에 의해 자동 반영)
-    }
-
-    // 변환 메서드
-    private StudyRequestResponse toResponse(StudyRequest entity) {
-        return StudyRequestResponse.builder()
-                .id(entity.getId())
-                .user(UserResponse.builder()
-                        .id(entity.getUser().getId())
-                        .nickname(entity.getUser().getNickname())
-                        .profileImage(entity.getUser().getProfileImage())
-                        .profileMessage(entity.getUser().getProfileMessage())
-                        .build())
-                .studyRecruitId(entity.getStudyRecruit().getId())
-                .studyTitle(entity.getStudyRecruit().getTitle())
-                .message(entity.getMessage())
-                .status(entity.getStatus())
-                .requestedAt(entity.getRequestedAt())
-                .build();
     }
 
     // 매일 새벽 3시에 실행 (cron: 0 0 3 * * ?)

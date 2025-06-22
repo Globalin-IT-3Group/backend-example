@@ -5,6 +5,7 @@ import com.example.kotsuexample.dto.study.StudyRequestCreateDTO;
 import com.example.kotsuexample.dto.study.StudyRequestResponse;
 import com.example.kotsuexample.service.StudyRequestService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,10 +26,14 @@ public class StudyRequestController {
         return studyRequestService.createStudyRequest(userId, req);
     }
 
-    // 2. 내가 신청한 내역 전체 조회
+    // 2. 내가 신청한 내역 전체 조회 (페이지네이션, 기본 6개)
     @GetMapping("/my")
-    public List<StudyRequestResponse> getMyRequests(@CurrentUser Integer userId) {
-        return studyRequestService.getMyStudyRequests(userId);
+    public Page<StudyRequestResponse> getMyRequests(
+            @CurrentUser Integer userId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "6") int size
+    ) {
+        return studyRequestService.getMyStudyRequests(userId, page, size);
     }
 
     // 3. 내가 신청한 특정 모집글의 내 신청 내역 단건 조회 (있으면 반환, 없으면 404)
@@ -46,13 +51,15 @@ public class StudyRequestController {
         studyRequestService.cancelMyRequest(userId, requestId);
     }
 
-    // 5. 특정 모집글의 모든 지원자 내역 (리더 권한 필요)
+    // 5. 특정 모집글의 모든 지원자 내역 (리더 권한 필요, 페이지네이션, 기본 5개)
     @GetMapping("/recruit/{studyRecruitId}")
-    public List<StudyRequestResponse> getRequestsByRecruit(
+    public Page<StudyRequestResponse> getRequestsByRecruit(
             @CurrentUser Integer userId,
-            @PathVariable Integer studyRecruitId
+            @PathVariable Integer studyRecruitId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size
     ) {
-        return studyRequestService.getRequestsByRecruit(userId, studyRecruitId);
+        return studyRequestService.getRequestsByRecruit(userId, studyRecruitId, page, size);
     }
 
     // 6. 리더가 지원자의 요청을 승인/거절
