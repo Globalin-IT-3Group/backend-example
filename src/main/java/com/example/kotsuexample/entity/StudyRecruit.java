@@ -1,6 +1,7 @@
 package com.example.kotsuexample.entity;
 
 import com.example.kotsuexample.dto.study.StudyRecruitSaveRequestDTO;
+import com.mysql.cj.MysqlConnection;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -45,5 +46,9 @@ public class StudyRecruit {
                 .studyExplain(this.studyExplain)
                 .title(this.title)
                 .build();
+    }
+
+    public User getLeader() {
+        return this.studyRoom.getLeader();
     }
 }

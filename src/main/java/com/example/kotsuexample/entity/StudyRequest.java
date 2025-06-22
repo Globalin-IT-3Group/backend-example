@@ -2,6 +2,7 @@ package com.example.kotsuexample.entity;
 
 import com.example.kotsuexample.entity.enums.StudyRequestStatus;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -34,4 +35,16 @@ public class StudyRequest {
 
     @Column(name = "requested_at")
     private LocalDateTime requestedAt;
+
+    @Builder
+    public StudyRequest(User user, StudyRecruit studyRecruit, String message, StudyRequestStatus status, LocalDateTime requestedAt) {
+        this.user = user;
+        this.studyRecruit = studyRecruit;
+        this.message = message;
+        this.status = status;
+        this.requestedAt = requestedAt;
+    }
+
+    public void updateStatus(StudyRequestStatus studyRequestStatus) {
+    }
 }
