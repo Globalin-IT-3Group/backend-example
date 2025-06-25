@@ -26,6 +26,9 @@ public class StudyRequest {
     @JoinColumn(name = "study_recruit_id", nullable = false)
     private StudyRecruit studyRecruit;
 
+    @Column(nullable = false)
+    private String title;
+
     @Lob
     private String message;
 
@@ -37,9 +40,10 @@ public class StudyRequest {
     private LocalDateTime requestedAt;
 
     @Builder
-    public StudyRequest(User user, StudyRecruit studyRecruit, String message, StudyRequestStatus status, LocalDateTime requestedAt) {
+    public StudyRequest(User user, StudyRecruit studyRecruit, String title, String message, StudyRequestStatus status, LocalDateTime requestedAt) {
         this.user = user;
         this.studyRecruit = studyRecruit;
+        this.title = title;
         this.message = message;
         this.status = status;
         this.requestedAt = requestedAt;

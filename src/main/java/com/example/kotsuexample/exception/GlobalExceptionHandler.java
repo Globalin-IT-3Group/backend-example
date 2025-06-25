@@ -64,7 +64,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler
-    public ResponseEntity<ErrorResponseDTO> catchUserDuplicateException(UserDuplicateException e) {
+    public ResponseEntity<ErrorResponseDTO> catchDuplicateException(DuplicateException e) {
         ErrorResponseDTO errorResponseDTO = ErrorResponseDTO.builder()
                 .message(e.getMessage())
                 .build();
@@ -173,6 +173,15 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler
     public ResponseEntity<ErrorResponseDTO> catchNotFoundByParamException(NotFoundByParamException e) {
+        ErrorResponseDTO errorResponseDTO = ErrorResponseDTO.builder()
+                .message(e.getMessage())
+                .build();
+
+        return new ResponseEntity<>(errorResponseDTO, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ErrorResponseDTO> catchStudyDataNotFoundException(StudyDataNotFoundException e) {
         ErrorResponseDTO errorResponseDTO = ErrorResponseDTO.builder()
                 .message(e.getMessage())
                 .build();

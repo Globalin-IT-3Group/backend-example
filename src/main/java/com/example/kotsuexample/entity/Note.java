@@ -20,6 +20,8 @@ public class Note {
     @Column(name = "user_id", nullable = false)
     private Integer userId;
 
+    // TODO: 이미지 생각해보기
+
     private String title;
 
     @Lob

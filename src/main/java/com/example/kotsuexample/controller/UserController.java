@@ -2,7 +2,7 @@ package com.example.kotsuexample.controller;
 
 import com.example.kotsuexample.dto.*;
 import com.example.kotsuexample.config.CurrentUser;
-import com.example.kotsuexample.exception.user.UserDuplicateException;
+import com.example.kotsuexample.exception.user.DuplicateException;
 import com.example.kotsuexample.exception.NoneInputValueException;
 import com.example.kotsuexample.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
@@ -56,7 +56,7 @@ public class UserController {
 
         boolean isDuplicate = userService.isNicknameDuplicated(inputtedNickname);
 
-        if (isDuplicate) throw new UserDuplicateException("존재하는 닉네임입니다.");
+        if (isDuplicate) throw new DuplicateException("존재하는 닉네임입니다.");
 
         userService.updateNickname(userId, inputtedNickname);
 

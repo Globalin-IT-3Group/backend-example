@@ -1,9 +1,13 @@
 package com.example.kotsuexample.service;
 
-import com.example.kotsuexample.dto.study.StudyRequestCreateDTO;
-import com.example.kotsuexample.dto.study.StudyRequestResponse;
+import com.example.kotsuexample.dto.study.request.MyStudyRequestResponse;
+import com.example.kotsuexample.dto.study.request.StudyRequestCreateDTO;
+import com.example.kotsuexample.dto.study.request.StudyRequestResponse;
 import com.example.kotsuexample.entity.*;
 import com.example.kotsuexample.entity.enums.StudyRequestStatus;
+import com.example.kotsuexample.exception.StudyDataNotFoundException;
+import com.example.kotsuexample.exception.user.DuplicateException;
+import com.example.kotsuexample.exception.user.UserUnauthorizedException;
 import com.example.kotsuexample.repository.StudyRecruitRepository;
 import com.example.kotsuexample.repository.StudyRequestRepository;
 import com.example.kotsuexample.repository.StudyRoomMemberRepository;
@@ -32,16 +36,15 @@ public class StudyRequestService {
     public Integer createStudyRequest(Integer userId, StudyRequestCreateDTO req) {
         User user = userService.getUserById(userId);
         StudyRecruit recruit = studyRecruitRepository.findById(req.getStudyRecruitId())
-                .orElseThrow(() -> new IllegalArgumentException("모집글 없음"));
+                .orElseThrow(() -> new StudyDataNotFoundException("모집글 없음"));
 
         boolean exists = studyRequestRepository.findByUserIdAndStudyRecruitId(userId, recruit.getId()).isPresent();
-        if (exists) {
-            throw new IllegalStateException("이미 신청한 내역이 있습니다.");
-        }
+        if (exists) throw new DuplicateException("이미 신청한 내역이 있습니다.");
 
         StudyRequest entity = StudyRequest.builder()
                 .user(user)
                 .studyRecruit(recruit)
+                .title(req.getTitle())
                 .message(req.getMessage())
                 .status(StudyRequestStatus.PENDING)
                 .requestedAt(LocalDateTime.now())
@@ -50,32 +53,31 @@ public class StudyRequestService {
         return entity.getId();
     }
 
-
     // 2. 내가 신청한 전체 내역
     @Transactional(readOnly = true)
-    public Page<StudyRequestResponse> getMyStudyRequests(Integer userId, int page, int size) {
+    public Page<MyStudyRequestResponse> getMyStudyRequests(Integer userId, int page, int size) {
         Page<StudyRequest> requests = studyRequestRepository.findByUserId(
                 userId, PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "requestedAt"))
         );
-        return requests.map(StudyRequestResponse::from);
+        return requests.map(MyStudyRequestResponse::from);
     }
 
     // 3. 내가 특정 모집글에 신청한 내역 단건
     @Transactional(readOnly = true)
-    public StudyRequestResponse getMyRequestByRecruit(Integer userId, Integer studyRecruitId) {
+    public MyStudyRequestResponse getMyRequestByRecruit(Integer userId, Integer studyRecruitId) {
         StudyRequest req = studyRequestRepository
                 .findByUserIdAndStudyRecruitId(userId, studyRecruitId)
-                .orElseThrow(() -> new IllegalArgumentException("신청 내역 없음"));
-        return StudyRequestResponse.from(req);
+                .orElseThrow(() -> new StudyDataNotFoundException("신청 내역 없음"));
+        return MyStudyRequestResponse.from(req);
     }
 
     // 4. 신청 취소
     @Transactional
     public void cancelMyRequest(Integer userId, Integer requestId) {
         StudyRequest req = studyRequestRepository.findById(requestId)
-                .orElseThrow(() -> new IllegalArgumentException("신청 내역 없음"));
+                .orElseThrow(() -> new StudyDataNotFoundException("신청 내역 없음"));
         if (!req.getUser().getId().equals(userId)) {
-            throw new SecurityException("본인 신청만 취소 가능");
+            throw new UserUnauthorizedException("본인 신청만 취소 가능");
         }
         studyRequestRepository.delete(req);
     }
@@ -84,10 +86,10 @@ public class StudyRequestService {
     @Transactional(readOnly = true)
     public Page<StudyRequestResponse> getRequestsByRecruit(Integer leaderId, Integer studyRecruitId, int page, int size) {
         StudyRecruit recruit = studyRecruitRepository.findById(studyRecruitId)
-                .orElseThrow(() -> new IllegalArgumentException("모집글 없음"));
+                .orElseThrow(() -> new StudyDataNotFoundException("모집글 없음"));
         // 권한 체크
         if (!recruit.getLeader().getId().equals(leaderId)) {
-            throw new SecurityException("리더만 조회 가능");
+            throw new UserUnauthorizedException("리더만 조회 가능");
         }
         Page<StudyRequest> requests = studyRequestRepository.findByStudyRecruitId(
                 studyRecruitId, PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "requestedAt"))
@@ -99,10 +101,10 @@ public class StudyRequestService {
     @Transactional
     public void updateRequestStatus(Integer leaderId, Integer requestId, String status) {
         StudyRequest req = studyRequestRepository.findById(requestId)
-                .orElseThrow(() -> new IllegalArgumentException("지원 내역 없음"));
+                .orElseThrow(() -> new StudyDataNotFoundException("지원 내역 없음"));
         StudyRecruit recruit = req.getStudyRecruit();
         if (!recruit.getLeader().getId().equals(leaderId)) {
-            throw new SecurityException("리더만 상태 변경 가능");
+            throw new UserUnauthorizedException("리더만 상태 변경 가능");
         }
         StudyRequestStatus newStatus = StudyRequestStatus.valueOf(status.toUpperCase());
         req.updateStatus(newStatus);

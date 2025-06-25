@@ -1,14 +1,13 @@
 package com.example.kotsuexample.controller;
 
 import com.example.kotsuexample.config.CurrentUser;
-import com.example.kotsuexample.dto.study.StudyRequestCreateDTO;
-import com.example.kotsuexample.dto.study.StudyRequestResponse;
+import com.example.kotsuexample.dto.study.request.MyStudyRequestResponse;
+import com.example.kotsuexample.dto.study.request.StudyRequestCreateDTO;
+import com.example.kotsuexample.dto.study.request.StudyRequestResponse;
 import com.example.kotsuexample.service.StudyRequestService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -28,7 +27,7 @@ public class StudyRequestController {
 
     // 2. 내가 신청한 내역 전체 조회 (페이지네이션, 기본 6개)
     @GetMapping("/my")
-    public Page<StudyRequestResponse> getMyRequests(
+    public Page<MyStudyRequestResponse> getMyRequests(
             @CurrentUser Integer userId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "6") int size
@@ -38,7 +37,7 @@ public class StudyRequestController {
 
     // 3. 내가 신청한 특정 모집글의 내 신청 내역 단건 조회 (있으면 반환, 없으면 404)
     @GetMapping("/my/{studyRecruitId}")
-    public StudyRequestResponse getMyRequestByRecruit(
+    public MyStudyRequestResponse getMyRequestByRecruit(
             @CurrentUser Integer userId,
             @PathVariable Integer studyRecruitId
     ) {
