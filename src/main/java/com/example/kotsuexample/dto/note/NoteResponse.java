@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 @Builder
 public class NoteResponse {
     private Integer id;
+    private String imageUrl;
     private String title;
     private String content;
     private LocalDateTime createdAt;

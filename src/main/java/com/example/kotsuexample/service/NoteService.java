@@ -22,6 +22,7 @@ public class NoteService {
                 .stream()
                 .map(note -> NoteResponse.builder()
                         .id(note.getId())
+                        .imageUrl(note.getImageUrl())
                         .title(note.getTitle())
                         .content(note.getContent())
                         .createdAt(note.getCreatedAt())
@@ -35,6 +36,7 @@ public class NoteService {
                 .orElseThrow(() -> new RuntimeException("노트를 찾을 수 없습니다."));
         return NoteResponse.builder()
                 .id(note.getId())
+                .imageUrl(note.getImageUrl())
                 .title(note.getTitle())
                 .content(note.getContent())
                 .createdAt(note.getCreatedAt())
@@ -44,6 +46,7 @@ public class NoteService {
     public void createNote(Integer userId, NoteRequest request) {
         Note note = Note.builder()
                 .userId(userId)
+                .imageUrl(request.getImageUrl())
                 .title(request.getTitle())
                 .content(request.getContent())
                 .createdAt(LocalDateTime.now())
@@ -55,6 +58,7 @@ public class NoteService {
         Note note = noteRepository.findById(noteId)
                 .filter(n -> n.getUserId().equals(userId))
                 .orElseThrow(() -> new RuntimeException("수정할 노트를 찾을 수 없습니다."));
+        note.changeImageUrl(request.getImageUrl());
         note.changeTitle(request.getTitle());
         note.changeContent(request.getContent());
         noteRepository.save(note);

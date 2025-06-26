@@ -20,19 +20,23 @@ public class Note {
     @Column(name = "user_id", nullable = false)
     private Integer userId;
 
-    // TODO: 이미지 생각해보기
+    @Column(name = "image_url")
+    private String imageUrl;
 
+    @Column(nullable = false)
     private String title;
 
     @Lob
+    @Column(nullable = false)
     private String content;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @Builder
-    public Note(Integer userId, String title, String content, LocalDateTime createdAt) {
+    public Note(Integer userId, String imageUrl, String title, String content, LocalDateTime createdAt) {
         this.userId = userId;
+        this.imageUrl = imageUrl;
         this.title = title;
         this.content = content;
         this.createdAt = createdAt;
@@ -44,5 +48,9 @@ public class Note {
 
     public void changeContent(String content) {
         this.content = content;
+    }
+
+    public void changeImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }
