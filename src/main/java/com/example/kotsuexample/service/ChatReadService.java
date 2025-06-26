@@ -41,13 +41,21 @@ public class ChatReadService {
 
     // 미확인 메시지 수 조회
     public int getUnreadCount(Integer roomId, Integer userId) {
-        LocalDateTime lastRead = chatReadStatusRepository
+        Optional<LocalDateTime> lastReadOpt = chatReadStatusRepository
                 .findByChatRoomIdAndUserId(roomId, userId)
-                .map(ChatReadStatus::getLastReadAt)
-                .orElse(LocalDateTime.now());
+                .map(ChatReadStatus::getLastReadAt);
 
-        return chatMessageRepository.countByChatRoomIdAndSentAtAfterAndSenderIdNot(
-                roomId, lastRead, userId);
+        if (lastReadOpt.isPresent()) {
+            // 기존처럼 마지막 읽은 시각 이후 메시지 수 카운트
+            return chatMessageRepository.countByChatRoomIdAndSentAtAfterAndSenderIdNot(
+                    roomId, lastReadOpt.get(), userId
+            );
+        } else {
+            // 한 번도 읽지 않은 경우 → 내가 보낸 것 빼고 전부 unread
+            return chatMessageRepository.countByChatRoomIdAndSenderIdNot(
+                    roomId, userId
+            );
+        }
     }
 
     public ChatRoomSummary getChatRoomSummary(Integer roomId, Integer userId) {

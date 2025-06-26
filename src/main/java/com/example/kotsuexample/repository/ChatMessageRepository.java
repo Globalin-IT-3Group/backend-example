@@ -12,4 +12,6 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Intege
     int countByChatRoomIdAndSentAtAfterAndSenderIdNot(Integer chatRoomId, LocalDateTime sentAt, Integer senderId);
 
     Optional<ChatMessage> findTopByChatRoomIdOrderBySentAtDesc(Integer roomId);
+
+    int countByChatRoomIdAndSenderIdNot(Integer roomId, Integer userId);
 }
