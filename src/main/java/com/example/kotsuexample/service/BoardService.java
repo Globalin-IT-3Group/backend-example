@@ -78,7 +78,20 @@ public class BoardService {
         boardRepository.deleteById(foundedBoard.getId());
     }
 
-    public Page<Board> getBoardsByUser(Integer userId, Pageable pageable) {
-        return boardRepository.findByUserId(userId, pageable);
+    public Page<BoardListDTO> getBoardsByUser(Integer userId, Pageable pageable) {
+        Page<Board> boards = boardRepository.findByUserId(userId, pageable);
+
+        return boards.map(board -> {
+            BoardListDTO dto = new BoardListDTO();
+            dto.setId(board.getId());
+            dto.setTitle(board.getTitle());
+            dto.setContent(board.getContent());
+            dto.setViewCount(board.getViewCount());
+            dto.setUser(board.getUser());
+            dto.setCommentCount(board.getComments().size());
+            dto.setCreatedAt(board.getCreatedAt());
+            dto.setUpdatedAt(board.getUpdatedAt());
+            return dto;
+        });
     }
 }

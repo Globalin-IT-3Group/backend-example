@@ -67,7 +67,7 @@ public class BoardController {
 
     // 내 거
     @GetMapping("/my")
-    public ResponseEntity<Page<Board>> getMyBoards(
+    public ResponseEntity<Page<BoardListDTO>> getMyBoards(
             @CurrentUser Integer userId,
             Pageable pageable
     ) {
