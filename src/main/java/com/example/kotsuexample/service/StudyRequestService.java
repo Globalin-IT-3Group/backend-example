@@ -5,6 +5,7 @@ import com.example.kotsuexample.dto.study.request.StudyRequestCreateDTO;
 import com.example.kotsuexample.dto.study.request.StudyRequestResponse;
 import com.example.kotsuexample.entity.*;
 import com.example.kotsuexample.entity.enums.StudyRequestStatus;
+import com.example.kotsuexample.exception.ExceedStudyMemberException;
 import com.example.kotsuexample.exception.StudyDataNotFoundException;
 import com.example.kotsuexample.exception.user.DuplicateException;
 import com.example.kotsuexample.exception.user.UserUnauthorizedException;
@@ -84,18 +85,32 @@ public class StudyRequestService {
 
     // 5. 리더가 모집글에 지원한 전체 내역 조회
     @Transactional(readOnly = true)
-    public Page<StudyRequestResponse> getRequestsByRecruit(Integer leaderId, Integer studyRecruitId, int page, int size) {
+    public Page<StudyRequestResponse> getRequestsByRecruit(
+            Integer leaderId, Integer studyRecruitId, int page, int size, String status) {
+
         StudyRecruit recruit = studyRecruitRepository.findById(studyRecruitId)
                 .orElseThrow(() -> new StudyDataNotFoundException("모집글 없음"));
-        // 권한 체크
         if (!recruit.getLeader().getId().equals(leaderId)) {
             throw new UserUnauthorizedException("리더만 조회 가능");
         }
-        Page<StudyRequest> requests = studyRequestRepository.findByStudyRecruitId(
-                studyRecruitId, PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "requestedAt"))
-        );
+
+        Page<StudyRequest> requests;
+        if (status != null && !status.isBlank()) {
+            // status 필터가 있을 때
+            requests = studyRequestRepository.findByStudyRecruitIdAndStatus(
+                    studyRecruitId, StudyRequestStatus.valueOf(status.toUpperCase()),
+                    PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "requestedAt"))
+            );
+        } else {
+            // 전체 조회
+            requests = studyRequestRepository.findByStudyRecruitId(
+                    studyRecruitId,
+                    PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "requestedAt"))
+            );
+        }
         return requests.map(StudyRequestResponse::from);
     }
+
 
     // 6. 리더가 지원 요청 승인/거절
     @Transactional
@@ -117,6 +132,10 @@ public class StudyRequestService {
             // 이미 멤버인지 중복체크
             boolean alreadyMember = studyRoom.getMembers().stream()
                     .anyMatch(member -> member.getUser().getId().equals(user.getId()));
+
+            int membersCount = studyRoom.getMembers().size();
+
+            if (membersCount >= 4) throw new ExceedStudyMemberException("스터디 제한 인원은 네 명입니다!");
 
             if (!alreadyMember) {
                 StudyRoomMember newMember = StudyRoomMember.builder()

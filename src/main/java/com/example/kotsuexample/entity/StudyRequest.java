@@ -50,5 +50,6 @@ public class StudyRequest {
     }
 
     public void updateStatus(StudyRequestStatus studyRequestStatus) {
+        this.status = studyRequestStatus;
     }
 }

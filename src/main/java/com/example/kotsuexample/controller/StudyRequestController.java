@@ -56,9 +56,10 @@ public class StudyRequestController {
             @CurrentUser Integer userId,
             @PathVariable Integer studyRecruitId,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size
+            @RequestParam(defaultValue = "5") int size,
+            @RequestParam(required = false) String status
     ) {
-        return studyRequestService.getRequestsByRecruit(userId, studyRecruitId, page, size);
+        return studyRequestService.getRequestsByRecruit(userId, studyRecruitId, page, size, status);
     }
 
     // 6. 리더가 지원자의 요청을 승인/거절

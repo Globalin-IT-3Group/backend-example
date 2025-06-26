@@ -4,6 +4,7 @@ import com.example.kotsuexample.entity.StudyRequest;
 import com.example.kotsuexample.entity.enums.StudyRequestStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;
@@ -19,4 +20,6 @@ public interface StudyRequestRepository extends JpaRepository<StudyRequest, Inte
     Page<StudyRequest> findByStudyRecruitId(Integer studyRecruitId, PageRequest requestedAt);
 
     Page<StudyRequest> findByUserId(Integer userId, PageRequest requestedAt);
+
+    Page<StudyRequest> findByStudyRecruitIdAndStatus(Integer studyRecruitId, StudyRequestStatus status, Pageable pageable);
 }
