@@ -39,6 +39,8 @@ public class StudyRequestService {
         StudyRecruit recruit = studyRecruitRepository.findById(req.getStudyRecruitId())
                 .orElseThrow(() -> new StudyDataNotFoundException("모집글 없음"));
 
+        if (recruit.getLeader().getId().equals(userId)) throw new UserUnauthorizedException("방장은 자신의 모집글에 신청할 수 없습니다.");
+
         boolean exists = studyRequestRepository.findByUserIdAndStudyRecruitId(userId, recruit.getId()).isPresent();
         if (exists) throw new DuplicateException("이미 신청한 내역이 있습니다.");
 
@@ -135,7 +137,10 @@ public class StudyRequestService {
 
             int membersCount = studyRoom.getMembers().size();
 
-            if (membersCount >= 4) throw new ExceedStudyMemberException("스터디 제한 인원은 네 명입니다!");
+            if (membersCount >= studyRoom.getMaxUserCount()) {
+                throw new ExceedStudyMemberException(
+                        String.format("스터디 제한 인원은 %d명입니다!", studyRoom.getMaxUserCount()));
+            }
 
             if (!alreadyMember) {
                 StudyRoomMember newMember = StudyRoomMember.builder()

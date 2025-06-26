@@ -22,4 +22,6 @@ public interface StudyRequestRepository extends JpaRepository<StudyRequest, Inte
     Page<StudyRequest> findByUserId(Integer userId, PageRequest requestedAt);
 
     Page<StudyRequest> findByStudyRecruitIdAndStatus(Integer studyRecruitId, StudyRequestStatus status, Pageable pageable);
+
+    void deleteByUserIdAndStudyRecruitId(Integer userId, Integer studyRecruitId);
 }

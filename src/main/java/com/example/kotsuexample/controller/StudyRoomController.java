@@ -56,4 +56,13 @@ public class StudyRoomController {
         studyRoomService.deleteStudyRoom(userId, id);
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping("/{id}/leave")
+    public ResponseEntity<Void> leaveStudyRoom(
+            @CurrentUser Integer userId,
+            @PathVariable Integer id
+    ) {
+        studyRoomService.leaveStudyRoom(userId, id);
+        return ResponseEntity.noContent().build();
+    }
 }

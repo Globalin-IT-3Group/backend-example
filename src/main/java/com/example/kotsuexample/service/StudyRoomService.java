@@ -4,7 +4,13 @@ import com.example.kotsuexample.dto.study.*;
 import com.example.kotsuexample.entity.StudyRoom;
 import com.example.kotsuexample.entity.StudyRoomMember;
 import com.example.kotsuexample.entity.User;
+import com.example.kotsuexample.exception.ExceedStudyMemberException;
+import com.example.kotsuexample.exception.NoAuthorizationException;
 import com.example.kotsuexample.exception.NoneInputValueException;
+import com.example.kotsuexample.exception.StudyDataNotFoundException;
+import com.example.kotsuexample.exception.user.DuplicateException;
+import com.example.kotsuexample.exception.user.UserNotFoundByIdException;
+import com.example.kotsuexample.repository.StudyRequestRepository;
 import com.example.kotsuexample.repository.StudyRoomMemberRepository;
 import com.example.kotsuexample.repository.StudyRoomRepository;
 import com.example.kotsuexample.repository.UserRepository;
@@ -23,15 +29,16 @@ public class StudyRoomService {
     private final StudyRoomRepository studyRoomRepository;
     private final UserRepository userRepository;
     private final StudyRoomMemberRepository studyRoomMemberRepository;
+    private final StudyRequestRepository studyRequestRepository;
 
     // 1. 생성
     @Transactional
     public StudyRoomDto createStudyRoom(Integer userId, CreateStudyRoomRequest dto) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("유저를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserNotFoundByIdException("유저를 찾을 수 없습니다."));
 
         if (studyRoomRepository.existsByName(dto.getName())) {
-            throw new IllegalArgumentException("이미 존재하는 스터디룸 이름입니다.");
+            throw new DuplicateException("이미 존재하는 스터디룸 이름입니다.");
         }
 
         StudyRoom studyRoom = StudyRoom.builder()
@@ -84,10 +91,10 @@ public class StudyRoomService {
     // 3. 상세 조회
     public StudyRoomDetailDto getStudyRoom(Integer userId, Integer id) {
         StudyRoom room = studyRoomRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("스터디룸이 존재하지 않습니다."));
+                .orElseThrow(() -> new StudyDataNotFoundException("스터디룸이 존재하지 않습니다."));
 
         boolean isMember = studyRoomMemberRepository.existsByStudyRoomAndUserId(room, userId);
-        if (!isMember) throw new NoneInputValueException("멤버가 아니라서 접근 권한이 없습니다!");
+        if (!isMember) throw new NoAuthorizationException("멤버가 아니라서 접근 권한이 없습니다!");
 
         int memberCount = studyRoomMemberRepository.countByStudyRoom(room);
 
@@ -119,11 +126,20 @@ public class StudyRoomService {
     @Transactional
     public StudyRoomDto updateStudyRoom(Integer userId, Integer id, UpdateStudyRoomRequest dto) {
         StudyRoom room = studyRoomRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("스터디룸이 존재하지 않습니다."));
+                .orElseThrow(() -> new StudyDataNotFoundException("스터디룸이 존재하지 않습니다."));
 
-        if (!room.getLeader().getId().equals(userId)) {
-            throw new SecurityException("수정 권한이 없습니다.");
+        if (!room.getLeader().getId().equals(userId)) throw new NoAuthorizationException("수정 권한이 없습니다.");
+
+        int currentMemberCount = room.getMembers().size();
+        if (dto.getMaxUserCount() < currentMemberCount) {
+            throw new ExceedStudyMemberException(
+                    String.format("최대 인원 수는 현재 멤버 수(%d)보다 적을 수 없습니다.", currentMemberCount)
+            );
         }
+
+        String inputtedName = dto.getName();
+        boolean isExistStudyRoomName = studyRoomRepository.existsByName(inputtedName);
+        if (!room.getName().equals(inputtedName) && isExistStudyRoomName) throw new DuplicateException("같은 이름의 스터디방이 존재합니다! 다른 방 이름을 입력해주세요!");
 
         room.update(
                 dto.getName(),
@@ -141,16 +157,13 @@ public class StudyRoomService {
     @Transactional
     public void deleteStudyRoom(Integer userId, Integer id) {
         StudyRoom room = studyRoomRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("스터디룸이 존재하지 않습니다."));
+                .orElseThrow(() -> new StudyDataNotFoundException("스터디룸이 존재하지 않습니다."));
 
-        if (!room.getLeader().getId().equals(userId)) {
-            throw new SecurityException("삭제 권한이 없습니다.");
-        }
+        if (!room.getLeader().getId().equals(userId)) throw new NoAuthorizationException("삭제 권한이 없습니다.");
 
         studyRoomRepository.delete(room);
     }
 
-    // ---- 내부 변환 메서드/업데이트 로직 예시 ----
     private StudyRoomDto toDto(StudyRoom room) {
         return StudyRoomDto.builder()
                 .id(room.getId())
@@ -168,5 +181,27 @@ public class StudyRoomService {
     public StudyRoom getStudyRoomEntity(Integer studyRoomId) {
         return studyRoomRepository.findById(studyRoomId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 스터디방이 존재하지 않습니다."));
+    }
+
+    @Transactional
+    public void leaveStudyRoom(Integer userId, Integer studyRoomId) {
+        // 1. 스터디룸 존재/본인이 멤버인지 확인
+        StudyRoom room = studyRoomRepository.findById(studyRoomId)
+                .orElseThrow(() -> new StudyDataNotFoundException("스터디룸이 존재하지 않습니다."));
+
+        // 2. 리더면 방 탈퇴 불가
+        if (room.getLeader().getId().equals(userId)) {
+            throw new NoAuthorizationException("방장은 탈퇴할 수 없습니다. 방을 삭제하세요.");
+        }
+
+        // 3. 멤버인지 확인 후 멤버십 삭제
+        StudyRoomMember member = studyRoomMemberRepository
+                .findByStudyRoom_IdAndUser_Id(studyRoomId, userId)
+                .orElseThrow(() -> new NoAuthorizationException("멤버가 아닙니다."));
+
+        Integer studyRecruitId = room.getStudyRecruit().getId();
+
+        studyRequestRepository.deleteByUserIdAndStudyRecruitId(userId, studyRecruitId);
+        studyRoomMemberRepository.delete(member);
     }
 }
