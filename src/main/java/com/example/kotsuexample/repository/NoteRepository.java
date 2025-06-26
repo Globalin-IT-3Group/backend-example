@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface NoteRepository extends JpaRepository<Note, Integer> {
     List<Note> findByUserIdOrderByCreatedAtDesc(Integer userId);
+    List<Note> findByUserIdAndTitleContainingIgnoreCaseOrderByCreatedAtDesc(Integer userId, String title);
 }

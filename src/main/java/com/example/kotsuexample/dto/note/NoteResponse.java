@@ -1,5 +1,6 @@
 package com.example.kotsuexample.dto.note;
 
+import com.example.kotsuexample.entity.Note;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -13,4 +14,14 @@ public class NoteResponse {
     private String title;
     private String content;
     private LocalDateTime createdAt;
+
+    public static NoteResponse fromEntity(Note note) {
+        return NoteResponse.builder()
+                .id(note.getId())
+                .imageUrl(note.getImageUrl())
+                .title(note.getTitle())
+                .content(note.getContent())
+                .createdAt(note.getCreatedAt())
+                .build();
+    }
 }

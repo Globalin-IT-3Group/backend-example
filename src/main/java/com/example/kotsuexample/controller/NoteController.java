@@ -51,4 +51,12 @@ public class NoteController {
         noteService.deleteNote(userId, noteId);
         return ResponseEntity.noContent().build();
     }
+
+    // 내 노트 검색
+    @GetMapping("/search")
+    public ResponseEntity<List<NoteResponse>> searchNotes(
+            @CurrentUser Integer userId,
+            @RequestParam("title") String title) {
+        return ResponseEntity.ok(noteService.searchMyNotes(userId, title));
+    }
 }

@@ -70,4 +70,12 @@ public class NoteService {
                 .orElseThrow(() -> new RuntimeException("삭제할 노트를 찾을 수 없습니다."));
         noteRepository.delete(note);
     }
+
+    public List<NoteResponse> searchMyNotes(Integer userId, String title) {
+        return noteRepository
+                .findByUserIdAndTitleContainingIgnoreCaseOrderByCreatedAtDesc(userId, title)
+                .stream()
+                .map(NoteResponse::fromEntity)
+                .toList();
+    }
 }
