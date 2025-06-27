@@ -1,5 +1,6 @@
 package com.example.kotsuexample.dto.study;
 
+import com.example.kotsuexample.dto.UserResponse;
 import com.example.kotsuexample.entity.StudyNote;
 import com.example.kotsuexample.entity.User;
 import lombok.Builder;
@@ -15,7 +16,7 @@ public class StudyNoteDetailDTO {
     private String title;
     private String content;
     private String thumbnail;
-    private User user;
+    private UserResponse user;
     private Integer heartCount;
     private List<StudyNoteCommentDTO> comments;
     private LocalDateTime createdAt;
@@ -28,7 +29,7 @@ public class StudyNoteDetailDTO {
                 .title(note.getTitle())
                 .content(note.getContent())
                 .thumbnail(note.getThumbnail())
-                .user(note.getUser())
+                .user(note.getUser().toUserResponse())
                 .createdAt(note.getCreatedAt())
                 .updatedAt(note.getUpdatedAt())
                 .comments(
