@@ -97,6 +97,18 @@ public class FriendController {
         return ResponseEntity.ok(ResponseData.<FriendDto>builder().data(dto).build());
     }
 
+    // 친구 요청 거절 (받은 요청 삭제)
+    @DeleteMapping("/reject")
+    public ResponseEntity<Void> rejectFriendRequest(
+            @CurrentUser Integer userId,
+            @RequestBody Map<String, Integer> payload) {
+        Integer requesterId = payload.get("requesterId");
+        if (requesterId == null) throw new NoneInputValueException("요청한 유저 ID가 없습니다.");
+
+        friendService.rejectFriendRequest(requesterId, userId); // 요청자 → 나(수락/거절)
+        return ResponseEntity.noContent().build();
+    }
+
     @Getter
     @Builder
     public static class FriendDto {

@@ -93,4 +93,13 @@ public class FriendService {
 
         return friendRepository.findRelation(userId, targetUserId).orElse(null);
     }
+
+    // 친구 요청 거절(삭제)
+    public void rejectFriendRequest(Integer requesterId, Integer addresseeId) {
+        Friend friend = friendRepository.findByRequesterIdAndAddresseeIdAndStatus(
+                requesterId, addresseeId, FriendStatus.PENDING
+        ).orElseThrow(() -> new FriendNotFoundException("해당 친구 요청이 존재하지 않습니다."));
+
+        friendRepository.delete(friend);
+    }
 }
