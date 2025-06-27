@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -93,5 +94,23 @@ public class BoardService {
             dto.setUpdatedAt(board.getUpdatedAt());
             return dto;
         });
+    }
+
+    // 자유게시판 list중 4개만 뽑아오기
+    public List<BoardListDTO> getLatestFourBoards() {
+        List<Board> boards = boardRepository.findTop4ByOrderByCreatedAtDesc();
+
+        return boards.stream().map(board -> {
+            BoardListDTO dto = new BoardListDTO();
+            dto.setId(board.getId());
+            dto.setTitle(board.getTitle());
+            dto.setContent(board.getContent());
+            dto.setViewCount(board.getViewCount());
+            dto.setUser(board.getUser());
+            dto.setCommentCount(board.getComments().size());
+            dto.setCreatedAt(board.getCreatedAt());
+            dto.setUpdatedAt(board.getUpdatedAt());
+            return dto;
+        }).toList();
     }
 }

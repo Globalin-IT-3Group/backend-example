@@ -10,6 +10,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/board")
@@ -72,5 +74,11 @@ public class BoardController {
             Pageable pageable
     ) {
         return ResponseEntity.ok(boardService.getBoardsByUser(userId, pageable));
+    }
+
+    // 자유게시판 list중 4개만 뽑아오기
+    @GetMapping("/latest")
+    public ResponseEntity<List<BoardListDTO>> getLatestBoards() {
+        return ResponseEntity.ok(boardService.getLatestFourBoards());
     }
 }
