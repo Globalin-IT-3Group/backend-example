@@ -4,8 +4,8 @@ import com.example.kotsuexample.dto.CommentDTO;
 import com.example.kotsuexample.entity.Board;
 import com.example.kotsuexample.entity.Comment;
 import com.example.kotsuexample.entity.User;
-import com.example.kotsuexample.exception.NoAuthorizationException;
 import com.example.kotsuexample.exception.NotFoundByParamException;
+import com.example.kotsuexample.exception.OperationNotAllowedException;
 import com.example.kotsuexample.repository.BoardRepository;
 import com.example.kotsuexample.repository.CommentRepository;
 import lombok.RequiredArgsConstructor;
@@ -40,7 +40,7 @@ public class CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new NotFoundByParamException("댓글이 조회되지 않습니다."));
         if (!comment.getUser().getId().equals(userId)) {
-            throw new NoAuthorizationException("수정할 권한이 없습니다.");
+            throw new OperationNotAllowedException("수정할 권한이 없습니다.");
         }
         comment.setContent(content);
         comment.setUpdatedAt(LocalDateTime.now());
@@ -52,7 +52,7 @@ public class CommentService {
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new NotFoundByParamException("댓글이 조회되지 않습니다."));
         if (!comment.getUser().getId().equals(userId)) {
-            throw new NoAuthorizationException("삭제할 권한이 없습니다.");
+            throw new OperationNotAllowedException("삭제할 권한이 없습니다.");
         }
         commentRepository.delete(comment);
     }

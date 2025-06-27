@@ -4,10 +4,7 @@ import com.example.kotsuexample.dto.study.*;
 import com.example.kotsuexample.entity.StudyRoom;
 import com.example.kotsuexample.entity.StudyRoomMember;
 import com.example.kotsuexample.entity.User;
-import com.example.kotsuexample.exception.ExceedStudyMemberException;
-import com.example.kotsuexample.exception.NoAuthorizationException;
-import com.example.kotsuexample.exception.NoneInputValueException;
-import com.example.kotsuexample.exception.StudyDataNotFoundException;
+import com.example.kotsuexample.exception.*;
 import com.example.kotsuexample.exception.user.DuplicateException;
 import com.example.kotsuexample.exception.user.UserNotFoundByIdException;
 import com.example.kotsuexample.repository.StudyRequestRepository;
@@ -94,7 +91,7 @@ public class StudyRoomService {
                 .orElseThrow(() -> new StudyDataNotFoundException("스터디룸이 존재하지 않습니다."));
 
         boolean isMember = studyRoomMemberRepository.existsByStudyRoomAndUserId(room, userId);
-        if (!isMember) throw new NoAuthorizationException("멤버가 아니라서 접근 권한이 없습니다!");
+        if (!isMember) throw new OperationNotAllowedException("멤버가 아니라서 접근 권한이 없습니다!");
 
         int memberCount = studyRoomMemberRepository.countByStudyRoom(room);
 
@@ -128,7 +125,7 @@ public class StudyRoomService {
         StudyRoom room = studyRoomRepository.findById(id)
                 .orElseThrow(() -> new StudyDataNotFoundException("스터디룸이 존재하지 않습니다."));
 
-        if (!room.getLeader().getId().equals(userId)) throw new NoAuthorizationException("수정 권한이 없습니다.");
+        if (!room.getLeader().getId().equals(userId)) throw new OperationNotAllowedException("수정 권한이 없습니다.");
 
         int currentMemberCount = room.getMembers().size();
         if (dto.getMaxUserCount() < currentMemberCount) {
@@ -159,7 +156,7 @@ public class StudyRoomService {
         StudyRoom room = studyRoomRepository.findById(id)
                 .orElseThrow(() -> new StudyDataNotFoundException("스터디룸이 존재하지 않습니다."));
 
-        if (!room.getLeader().getId().equals(userId)) throw new NoAuthorizationException("삭제 권한이 없습니다.");
+        if (!room.getLeader().getId().equals(userId)) throw new OperationNotAllowedException("삭제 권한이 없습니다.");
 
         studyRoomRepository.delete(room);
     }
@@ -191,13 +188,13 @@ public class StudyRoomService {
 
         // 2. 리더면 방 탈퇴 불가
         if (room.getLeader().getId().equals(userId)) {
-            throw new NoAuthorizationException("방장은 탈퇴할 수 없습니다. 방을 삭제하세요.");
+            throw new OperationNotAllowedException("방장은 탈퇴할 수 없습니다. 방을 삭제하세요.");
         }
 
         // 3. 멤버인지 확인 후 멤버십 삭제
         StudyRoomMember member = studyRoomMemberRepository
                 .findByStudyRoom_IdAndUser_Id(studyRoomId, userId)
-                .orElseThrow(() -> new NoAuthorizationException("멤버가 아닙니다."));
+                .orElseThrow(() -> new OperationNotAllowedException("멤버가 아닙니다."));
 
         Integer studyRecruitId = room.getStudyRecruit().getId();
 
