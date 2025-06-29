@@ -4,14 +4,13 @@ import com.example.kotsuexample.dto.study.request.MyStudyRequestResponse;
 import com.example.kotsuexample.dto.study.request.StudyRequestCreateDTO;
 import com.example.kotsuexample.dto.study.request.StudyRequestResponse;
 import com.example.kotsuexample.entity.*;
+import com.example.kotsuexample.entity.enums.ChatRoomType;
 import com.example.kotsuexample.entity.enums.StudyRequestStatus;
 import com.example.kotsuexample.exception.ExceedStudyMemberException;
 import com.example.kotsuexample.exception.StudyDataNotFoundException;
 import com.example.kotsuexample.exception.user.DuplicateException;
 import com.example.kotsuexample.exception.user.UserUnauthorizedException;
-import com.example.kotsuexample.repository.StudyRecruitRepository;
-import com.example.kotsuexample.repository.StudyRequestRepository;
-import com.example.kotsuexample.repository.StudyRoomMemberRepository;
+import com.example.kotsuexample.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -22,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +31,8 @@ public class StudyRequestService {
     private final StudyRecruitRepository studyRecruitRepository;
     private final UserService userService;
     private final StudyRoomMemberRepository studyRoomMemberRepository;
+    private final ChatRoomMemberRepository chatRoomMemberRepository;
+    private final ChatRoomRepository chatRoomRepository;
 
     // 1. 신청
     @Transactional
@@ -113,7 +115,6 @@ public class StudyRequestService {
         return requests.map(StudyRequestResponse::from);
     }
 
-
     // 6. 리더가 지원 요청 승인/거절
     @Transactional
     public void updateRequestStatus(Integer leaderId, Integer requestId, String status) {
@@ -150,6 +151,23 @@ public class StudyRequestService {
                         .build();
                 studyRoom.addMember(newMember); // 양방향 세팅
                 studyRoomMemberRepository.save(newMember);
+            }
+
+            Optional<ChatRoom> groupChatRoomOpt = chatRoomRepository
+                    .findByTypeAndStudyRoomId(ChatRoomType.GROUP, studyRoom.getId());
+
+            if (groupChatRoomOpt.isPresent()) {
+                ChatRoom groupRoom = groupChatRoomOpt.get();
+                boolean alreadyInChat = chatRoomMemberRepository
+                        .existsByChatRoomIdAndUserId(groupRoom.getId(), user.getId());
+                if (!alreadyInChat) {
+                    ChatRoomMember chatMember = ChatRoomMember.builder()
+                            .chatRoomId(groupRoom.getId())
+                            .userId(user.getId())
+                            .joinedAt(LocalDateTime.now())
+                            .build();
+                    chatRoomMemberRepository.save(chatMember);
+                }
             }
         }
         // save 생략 (영속성 컨텍스트에 의해 자동 반영)

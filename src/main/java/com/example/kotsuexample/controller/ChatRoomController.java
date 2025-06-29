@@ -4,6 +4,7 @@ import com.example.kotsuexample.config.CurrentUser;
 import com.example.kotsuexample.dto.ChatRoomRequest;
 import com.example.kotsuexample.dto.ChatRoomResponse;
 import com.example.kotsuexample.dto.ChatRoomSummary;
+import com.example.kotsuexample.dto.GroupChatRoomRequest;
 import com.example.kotsuexample.service.ChatReadService;
 import com.example.kotsuexample.service.ChatRoomService;
 import lombok.RequiredArgsConstructor;
@@ -51,5 +52,11 @@ public class ChatRoomController {
     public ResponseEntity<Void> markAsRead(@PathVariable Integer roomId, @CurrentUser Integer userId) {
         chatReadService.markChatAsRead(roomId, userId, LocalDateTime.now());
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/group")
+    public ResponseEntity<ChatRoomResponse> getOrCreateGroupRoom(@RequestBody GroupChatRoomRequest req) {
+        ChatRoomResponse response = chatRoomService.getOrCreateGroupRoom(req);
+        return ResponseEntity.ok(response);
     }
 }

@@ -18,4 +18,8 @@ public class ChatMessageDTO {
     private MessageType messageType;
     private String sentAt;
     private Boolean isRead; // (옵션)
+
+    // === 읽음 이벤트 전용 ===
+    private String lastReadAt;      // 읽음 이벤트일 때만 사용
+    private Integer messageId;      // 읽음 이벤트일 때만 사용 (읽은 대상 메시지의 id)
 }

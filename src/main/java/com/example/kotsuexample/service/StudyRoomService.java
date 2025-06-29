@@ -1,22 +1,19 @@
 package com.example.kotsuexample.service;
 
 import com.example.kotsuexample.dto.study.*;
-import com.example.kotsuexample.entity.StudyRoom;
-import com.example.kotsuexample.entity.StudyRoomMember;
-import com.example.kotsuexample.entity.User;
+import com.example.kotsuexample.entity.*;
+import com.example.kotsuexample.entity.enums.ChatRoomType;
 import com.example.kotsuexample.exception.*;
 import com.example.kotsuexample.exception.user.DuplicateException;
 import com.example.kotsuexample.exception.user.UserNotFoundByIdException;
-import com.example.kotsuexample.repository.StudyRequestRepository;
-import com.example.kotsuexample.repository.StudyRoomMemberRepository;
-import com.example.kotsuexample.repository.StudyRoomRepository;
-import com.example.kotsuexample.repository.UserRepository;
+import com.example.kotsuexample.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,6 +24,8 @@ public class StudyRoomService {
     private final UserRepository userRepository;
     private final StudyRoomMemberRepository studyRoomMemberRepository;
     private final StudyRequestRepository studyRequestRepository;
+    private final ChatRoomMemberRepository chatRoomMemberRepository;
+    private final ChatRoomRepository chatRoomRepository;
 
     // 1. 생성
     @Transactional
@@ -65,9 +64,24 @@ public class StudyRoomService {
         // member 저장 (CascadeType.ALL 이면 studyRoom만 저장해도 persist됨. 안전하게 별도 저장)
         studyRoomMemberRepository.save(member);
 
+        // ✅ [추가] 스터디방 생성과 동시에 그룹 ChatRoom 생성!
+        ChatRoom groupChatRoom = ChatRoom.builder()
+                .type(ChatRoomType.GROUP)
+                .studyRoomId(studyRoom.getId())
+                .createdAt(LocalDateTime.now())
+                .build();
+        chatRoomRepository.save(groupChatRoom);
+
+        // ✅ [추가] 리더를 그룹 ChatRoom의 멤버로 등록
+        ChatRoomMember chatMember = ChatRoomMember.builder()
+                .chatRoomId(groupChatRoom.getId())
+                .userId(user.getId())
+                .joinedAt(LocalDateTime.now())
+                .build();
+        chatRoomMemberRepository.save(chatMember);
+
         return toDto(studyRoom);
     }
-
 
     // 2. 목록 조회
     public List<StudyRoomSummaryDto> getStudyRoomList(Integer userId) {
@@ -158,6 +172,20 @@ public class StudyRoomService {
 
         if (!room.getLeader().getId().equals(userId)) throw new OperationNotAllowedException("삭제 권한이 없습니다.");
 
+        // 1. 그룹채팅방 먼저 조회
+        Optional<ChatRoom> groupChatRoomOpt = chatRoomRepository.findByTypeAndStudyRoomId(ChatRoomType.GROUP, room.getId());
+        groupChatRoomOpt.ifPresent(chatRoom -> {
+            // 2. 채팅 멤버/메시지 삭제 (cascade/orphanRemoval 적용 안되어 있으면 명시적으로 삭제)
+            chatRoomMemberRepository.deleteByChatRoomId(chatRoom.getId());
+            // 만약 ChatMessage 등도 있으면 repository.deleteByChatRoomId()도 실행
+            // chatMessageRepository.deleteByChatRoomId(chatRoom.getId());
+            chatRoomRepository.delete(chatRoom);
+        });
+
+        // 3. 스터디룸 멤버 삭제 (cascade면 자동)
+        studyRoomMemberRepository.deleteByStudyRoom_Id(room.getId());
+
+        // 4. 스터디룸 삭제
         studyRoomRepository.delete(room);
     }
 
@@ -200,5 +228,10 @@ public class StudyRoomService {
 
         studyRequestRepository.deleteByUserIdAndStudyRecruitId(userId, studyRecruitId);
         studyRoomMemberRepository.delete(member);
+
+        Optional<ChatRoom> groupChatRoomOpt = chatRoomRepository
+                .findByTypeAndStudyRoomId(ChatRoomType.GROUP, studyRoomId);
+
+        groupChatRoomOpt.ifPresent(chatRoom -> chatRoomMemberRepository.deleteByChatRoomIdAndUserId(chatRoom.getId(), userId));
     }
 }

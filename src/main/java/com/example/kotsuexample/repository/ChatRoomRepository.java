@@ -1,6 +1,7 @@
 package com.example.kotsuexample.repository;
 
 import com.example.kotsuexample.entity.ChatRoom;
+import com.example.kotsuexample.entity.enums.ChatRoomType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -21,4 +22,6 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Integer> {
           )
         """)
     Optional<ChatRoom> findSingleRoomByUsers(@Param("userA") Integer userA, @Param("userB") Integer userB);
+
+    Optional<ChatRoom> findByTypeAndStudyRoomId(ChatRoomType chatRoomType, Integer studyRoomId);
 }

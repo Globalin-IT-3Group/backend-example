@@ -2,6 +2,7 @@ package com.example.kotsuexample.service;
 
 import com.example.kotsuexample.dto.ChatRoomRequest;
 import com.example.kotsuexample.dto.ChatRoomResponse;
+import com.example.kotsuexample.dto.GroupChatRoomRequest;
 import com.example.kotsuexample.entity.ChatRoom;
 import com.example.kotsuexample.entity.ChatRoomMember;
 import com.example.kotsuexample.entity.User;
@@ -71,12 +72,49 @@ public class ChatRoomService {
     }
 
     public List<Integer> getMemberIds(Integer roomId) {
-
         if (!chatRoomRepository.existsById(roomId)) throw new ChatRoomNotFoundException("채팅방이 존재하지 않거나 유효하지 않습니다.");
 
         return chatRoomMemberRepository.findByChatRoomId(roomId)
                 .stream()
                 .map(ChatRoomMember::getUserId)
                 .toList();
+    }
+
+    public ChatRoomResponse getOrCreateGroupRoom(GroupChatRoomRequest req) {
+        // 1. 이미 해당 스터디방의 그룹채팅이 있으면 조회
+        Optional<ChatRoom> existingRoomOpt = chatRoomRepository.findByTypeAndStudyRoomId(ChatRoomType.GROUP, req.getStudyRoomId());
+        if (existingRoomOpt.isPresent()) {
+            return ChatRoomResponse.of(existingRoomOpt.get(), getMemberInfo(existingRoomOpt.get().getId()));
+        }
+
+        // 2. 없으면 새로 생성
+        ChatRoom room = chatRoomRepository.save(
+                ChatRoom.builder()
+                        .type(ChatRoomType.GROUP)
+                        .createdAt(LocalDateTime.now())
+                        .studyRoomId(req.getStudyRoomId())
+                        .build()
+        );
+
+        // 3. 멤버 등록
+        List<ChatRoomMember> members = req.getMemberIds().stream()
+                .map(userId -> ChatRoomMember.builder()
+                        .chatRoomId(room.getId())
+                        .userId(userId)
+                        .joinedAt(LocalDateTime.now())
+                        .build())
+                .toList();
+        chatRoomMemberRepository.saveAll(members);
+
+        // 4. 응답 생성
+        return ChatRoomResponse.of(room, getMemberInfo(room.getId()));
+    }
+
+    public ChatRoomType getRoomType(Integer chatRoomId) {
+        System.out.println("아니씨발 진짜 chatRoomId = " + chatRoomId);
+
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new IllegalArgumentException("ChatRoom not found: " + chatRoomId));
+        return chatRoom.getType();
     }
 }

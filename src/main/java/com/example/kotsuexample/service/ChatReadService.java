@@ -14,7 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -85,5 +87,32 @@ public class ChatReadService {
         return chatRoomMemberRepository.findByUserId(userId).stream()
                 .map(member -> getChatRoomSummary(member.getChatRoomId(), userId))
                 .toList();
+    }
+
+    public int getUnreadMemberCountForMessage(Integer roomId, Integer messageId) {
+        // 1. 메시지 조회
+        ChatMessage message = chatMessageRepository.findById(messageId)
+                .orElseThrow(() -> new RuntimeException("메시지를 찾을 수 없습니다."));
+
+        // 2. 채팅방 모든 멤버 조회
+        List<ChatRoomMember> members = chatRoomMemberRepository.findByChatRoomId(roomId);
+
+        // 3. 각 멤버의 읽음 정보 조회 (Map<userId, lastReadAt>)
+        Map<Integer, LocalDateTime> lastReadMap = chatReadStatusRepository
+                .findByChatRoomId(roomId).stream()
+                .collect(Collectors.toMap(ChatReadStatus::getUserId, ChatReadStatus::getLastReadAt));
+
+        int unreadCount = 0;
+        for (ChatRoomMember member : members) {
+            Integer userId = member.getUserId();
+            if (userId.equals(message.getSenderId())) continue; // 본인은 제외
+
+            LocalDateTime lastReadAt = lastReadMap.get(userId);
+            // lastReadAt이 없거나, 메시지보다 이전이면 아직 안 읽음
+            if (lastReadAt == null || lastReadAt.isBefore(message.getSentAt())) {
+                unreadCount++;
+            }
+        }
+        return unreadCount;
     }
 }

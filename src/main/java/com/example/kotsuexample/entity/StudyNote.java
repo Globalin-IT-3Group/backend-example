@@ -27,7 +27,7 @@ public class StudyNote {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "thumbnail")
+    @Lob
     private String thumbnail;
 
     @Column(nullable = false)

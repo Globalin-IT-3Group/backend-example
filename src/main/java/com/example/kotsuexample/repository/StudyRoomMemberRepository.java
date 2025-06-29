@@ -12,4 +12,6 @@ public interface StudyRoomMemberRepository extends JpaRepository<StudyRoomMember
     boolean existsByStudyRoomAndUserId(StudyRoom room, Integer userId);
 
     Optional<StudyRoomMember> findByStudyRoom_IdAndUser_Id(Integer studyRoomId, Integer userId);
+
+    void deleteByStudyRoom_Id(Integer id);
 }

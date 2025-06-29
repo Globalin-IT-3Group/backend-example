@@ -29,8 +29,9 @@ public class ChatRoom {
     private LocalDateTime createdAt;
 
     @Builder
-    public ChatRoom(ChatRoomType type, LocalDateTime createdAt) {
+    public ChatRoom(ChatRoomType type, Integer studyRoomId, LocalDateTime createdAt) {
         this.type = type;
+        this.studyRoomId = studyRoomId;
         this.createdAt = createdAt;
     }
 }
