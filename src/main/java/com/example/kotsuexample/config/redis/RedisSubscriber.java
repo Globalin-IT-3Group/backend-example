@@ -1,7 +1,6 @@
 package com.example.kotsuexample.config.redis;
 
 import com.example.kotsuexample.config.websocket.ChatSessionManager;
-import com.example.kotsuexample.dto.ChatMessageDTO;
 import com.example.kotsuexample.dto.GroupChatMessageDTO;
 import com.example.kotsuexample.dto.SseNotificationDTO;
 import com.example.kotsuexample.dto.UserResponse;
@@ -54,7 +53,6 @@ public class RedisSubscriber implements MessageListener {
             GroupChatMessageDTO dto = objectMapper.readValue(payload, GroupChatMessageDTO.class);
 
             if (dto.getChatRoomId() == null) {
-                System.err.println("🚨 [onMessage] chatRoomId is NULL! payload = " + payload);
                 return;
             }
 
@@ -113,13 +111,7 @@ public class RedisSubscriber implements MessageListener {
     }
 
     // 그룹(스터디) 채팅 및 시그널링
-    private void handleGroupChatMessage(String roomId, GroupChatMessageDTO dto) throws JsonProcessingException {
-        if (dto.getMessageType() == MessageType.OFFER ||
-                dto.getMessageType() == MessageType.ANSWER ||
-                dto.getMessageType() == MessageType.CANDIDATE) {
-            broadcast(roomId, toJson(dto));
-            return;
-        }
+    private void handleGroupChatMessage(String roomId, GroupChatMessageDTO dto) {
 
         if (dto.getMessageType() == MessageType.READ) {
             // 방어: null 체크
@@ -195,13 +187,19 @@ public class RedisSubscriber implements MessageListener {
         for (WebSocketSession session : sessionManager.getSessions(roomId)) {
             try {
                 if (session.isOpen()) {
-                    session.sendMessage(new TextMessage(payload));
+                    // 동기화: 한 번에 한 쓰레드만 sendMessage!
+                    synchronized (session) {
+                        session.sendMessage(new TextMessage(payload));
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
+                // 세션이 이미 죽었으면 map에서 제거 (선택)
+                // sessionManager.removeSession(roomId, session);
             }
         }
     }
+
 
     private List<Integer> getOtherUserIdsInRoom(Integer roomId, Integer senderId) {
         return chatRoomService.getMemberIds(roomId).stream()

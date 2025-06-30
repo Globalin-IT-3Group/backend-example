@@ -48,10 +48,15 @@ public class RedisConfig {
     }
 
     @Bean
-    public RedisMessageListenerContainer redisMessageListenerContainer(RedisConnectionFactory connectionFactory, RedisSubscriber redisSubscriber) {
+    public RedisMessageListenerContainer redisMessageListenerContainer(
+            RedisConnectionFactory connectionFactory,
+            RedisSubscriber redisSubscriber,
+            VideoSignalSubscriber videoSignalSubscriber
+    ) {
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
         container.addMessageListener(redisSubscriber, new PatternTopic("chatroom:*"));
+        container.addMessageListener(videoSignalSubscriber, new PatternTopic("signal:*"));
         return container;
     }
 }

@@ -13,6 +13,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     private final StudyChatHandler studyChatHandler;
     private final PersonalChatHandler personalChatHandler;
+    private final VideoSignalHandler videoSignalHandler;
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
@@ -21,6 +22,9 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
 //      ex. ws://localhost:8080/ws/chat?roomId=123&userId=5
         registry.addHandler(personalChatHandler, "/ws/chat")
+                .setAllowedOrigins("*");
+
+        registry.addHandler(videoSignalHandler, "/ws/signal")
                 .setAllowedOrigins("*");
     }
 }

@@ -137,4 +137,30 @@ public class ChatMessageService {
             redisPublisher.publish("chatroom:" + roomId, objectMapper.writeValueAsString(event));
         }
     }
+
+    public void sendSystemMessageToGroup(Integer chatRoomId, String content) throws JsonProcessingException {
+        // senderId는 0 또는 null로(혹은 별도 SYSTEM 유저)
+        ChatMessage msg = ChatMessage.builder()
+                .chatRoomId(chatRoomId)
+                .senderId(0) // 시스템
+                .messageType(MessageType.SYSTEM)
+                .message(content)
+                .sentAt(LocalDateTime.now())
+                .build();
+        chatMessageRepository.save(msg);
+
+        // DTO로 변환해서 전송
+        GroupChatMessageDTO dto = GroupChatMessageDTO.builder()
+                .id(msg.getId())
+                .chatRoomId(chatRoomId)
+                .senderId(0)
+                .senderNickname("SYSTEM")
+                .messageType(MessageType.SYSTEM)
+                .message(content)
+                .sentAt(msg.getSentAt().toString())
+                .build();
+
+        // Redis PubSub 브로드캐스트 (프론트에도 즉시 전파)
+        redisPublisher.publish("chatroom:" + chatRoomId, objectMapper.writeValueAsString(dto));
+    }
 }

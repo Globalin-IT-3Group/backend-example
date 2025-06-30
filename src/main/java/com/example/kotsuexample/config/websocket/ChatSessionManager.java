@@ -51,4 +51,9 @@ public class ChatSessionManager {
     public String getQueryParam(WebSocketSession session, String key) {
         return UriComponentsBuilder.fromUri(Objects.requireNonNull(session.getUri())).build().getQueryParams().getFirst(key);
     }
+
+    public boolean hasActiveSession(String roomId) {
+        Set<WebSocketSession> set = sessionMap.get(roomId);
+        return set != null && set.stream().anyMatch(WebSocketSession::isOpen);
+    }
 }
