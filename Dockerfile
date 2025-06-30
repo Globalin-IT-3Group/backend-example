@@ -16,7 +16,7 @@ WORKDIR /app
 COPY --from=build /app/build/libs/*.jar app.jar
 
 # 환경 변수로 Spring 프로파일 지정 (기본 prod)
-ENV SPRING_PROFILES_ACTIVE=local
+ENV SPRING_PROFILES_ACTIVE=prod
 
 # .env 파일이 있는 경우 주입 가능 (선택 사항)
 # ENV_FILE은 docker run 시 --env-file로 넣어줌
