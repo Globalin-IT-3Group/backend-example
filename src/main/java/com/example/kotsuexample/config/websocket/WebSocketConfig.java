@@ -18,13 +18,13 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(studyChatHandler, "/ws/study")
-                .setAllowedOrigins("*");
+                .setAllowedOrigins("https://kotsu-kotsu.org", "http://localhost:5173");
 
-//      ex. ws://localhost:8080/ws/chat?roomId=123&userId=5
+//      ex. wss://localhost:8080/ws/chat?roomId=123&userId=5
         registry.addHandler(personalChatHandler, "/ws/chat")
-                .setAllowedOrigins("*");
+                .setAllowedOrigins("https://kotsu-kotsu.org", "http://localhost:5173");
 
         registry.addHandler(videoSignalHandler, "/ws/signal")
-                .setAllowedOrigins("*");
+                .setAllowedOrigins("https://kotsu-kotsu.org", "http://localhost:5173");
     }
 }

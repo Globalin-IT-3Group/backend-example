@@ -24,7 +24,7 @@ public class SseService {
 
     public void send(Integer receiverId, NotificationType type, Object data) {
 
-        System.out.println("에스에스이 센드 메서드 호출");
+        System.out.println("SSE send() 호출");
 
         SseEmitter emitter = emitters.get(receiverId);
         if (emitter != null) {
@@ -35,7 +35,7 @@ public class SseService {
 
                 System.out.println("보내짐!!");
             } catch (IOException e) {
-                System.out.println("아 시발 ㅋㅋ");
+                System.out.println("안 보내짐 ㅜㅜ");
                 emitters.remove(receiverId);
             }
         }

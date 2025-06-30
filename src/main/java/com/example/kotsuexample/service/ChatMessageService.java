@@ -9,10 +9,8 @@ import com.example.kotsuexample.entity.ChatReadStatus;
 import com.example.kotsuexample.entity.ChatRoomMember;
 import com.example.kotsuexample.entity.User;
 import com.example.kotsuexample.entity.enums.MessageType;
-import com.example.kotsuexample.repository.ChatMessageRepository;
-import com.example.kotsuexample.repository.ChatReadStatusRepository;
-import com.example.kotsuexample.repository.ChatRoomMemberRepository;
-import com.example.kotsuexample.repository.UserRepository;
+import com.example.kotsuexample.exception.StudyDataNotFoundException;
+import com.example.kotsuexample.repository.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +34,7 @@ public class ChatMessageService {
     private final ChatReadService chatReadService;
     private final UserRepository userRepository;
     private final RedisPublisher redisPublisher;
+    private final ChatRoomRepository chatRoomRepository;
     private final ObjectMapper objectMapper;
 
     public List<ChatMessageDTO> getChatMessagesWithReadStatus(Integer roomId, Integer myUserId) {
@@ -73,15 +72,19 @@ public class ChatMessageService {
     }
 
     // 스터디방/그룹방: 메시지별 '읽지 않은 인원 수' 포함해서 반환
-    public List<GroupChatMessageDTO> getGroupMessagesWithUnreadCount(Integer roomId, Integer userId) {
-        // 1. 방 멤버 체크
-        boolean isMember = chatRoomMemberRepository.existsByChatRoomIdAndUserId(roomId, userId);
+    public List<GroupChatMessageDTO> getGroupMessagesWithUnreadCount(Integer studyRoomId, Integer userId) {
+        // 1. 스터디룸 → 그룹 채팅방 id 얻기
+        Integer chatRoomId = chatRoomRepository.findGroupChatRoomIdByStudyRoomId(studyRoomId)
+                .orElseThrow(() -> new StudyDataNotFoundException("스터디방에 채팅방이 존재하지 않습니다."));
+
+        // 2. 방 멤버 체크 (chatRoomId로)
+        boolean isMember = chatRoomMemberRepository.existsByChatRoomIdAndUserId(chatRoomId, userId);
         if (!isMember) {
             throw new IllegalArgumentException("채팅방 멤버가 아닙니다.");
         }
 
-        // 2. 메시지 조회/가공 (이하 동일)
-        List<ChatMessage> messages = chatMessageRepository.findByChatRoomIdOrderBySentAtAsc(roomId);
+        // 3. 메시지 불러오기
+        List<ChatMessage> messages = chatMessageRepository.findByChatRoomIdOrderBySentAtAsc(chatRoomId);
 
         Set<Integer> senderIds = messages.stream().map(ChatMessage::getSenderId).collect(Collectors.toSet());
         Map<Integer, User> userMap = userRepository.findAllById(senderIds)
@@ -103,7 +106,7 @@ public class ChatMessageService {
                                             .atOffset(ZoneOffset.UTC)
                                             .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
                             )
-                            .unreadCount(chatReadService.getUnreadMemberCountForMessage(roomId, msg.getId()))
+                            .unreadCount(chatReadService.getUnreadMemberCountForMessage(chatRoomId, msg.getId()))
                             .messageId(msg.getId())
                             .build();
                 })

@@ -3,6 +3,8 @@ package com.example.kotsuexample.dto;
 import com.example.kotsuexample.entity.enums.MessageType;
 import lombok.*;
 
+import java.util.Map;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -20,4 +22,5 @@ public class GroupChatMessageDTO {
     private Integer unreadCount;      // "READ" 이벤트면 이 필드만 있음
     private Integer messageId;        // "READ" 이벤트면 이 필드만 있음
     private String lastReadAt;        // "READ" 이벤트면 이 필드만 있음
+    private Map<Integer, Integer> unreadCounts;
 }

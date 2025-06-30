@@ -74,6 +74,10 @@ public class StudyRecruitService {
         StudyRoom studyRoom = studyRoomRepository.findById(studyRoomId)
                 .orElseThrow(() -> new IllegalArgumentException("스터디방을 찾을 수 없습니다."));
 
+        if (studyRoom.getStudyRecruit() == null) {
+            return null;
+        }
+
         return studyRoom.getStudyRecruit().toStudyRecruitSaveRequestDTO(studyRoomId);
     }
 

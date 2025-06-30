@@ -24,4 +24,8 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Integer> {
     Optional<ChatRoom> findSingleRoomByUsers(@Param("userA") Integer userA, @Param("userB") Integer userB);
 
     Optional<ChatRoom> findByTypeAndStudyRoomId(ChatRoomType chatRoomType, Integer studyRoomId);
+
+    // chatRoomRepository
+    @Query("select c.id from ChatRoom c where c.studyRoomId = :studyRoomId and c.type = 'GROUP'")
+    Optional<Integer> findGroupChatRoomIdByStudyRoomId(@Param("studyRoomId") Integer studyRoomId);
 }

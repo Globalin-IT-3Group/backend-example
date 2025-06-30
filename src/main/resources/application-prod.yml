@@ -1,0 +1,24 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: ${PROD_DB_URL}  # 예: jdbc:mysql://your-db.rds.amazonaws.com:3306/db
+    username: ${PROD_DB_USERNAME}
+    password: ${PROD_DB_PASSWORD}
+
+  data:
+    redis:
+      host: ${PROD_REDIS_HOST}  # 예: your-redis.cache.amazonaws.com
+      port: ${PROD_REDIS_PORT}
+      password: ${PROD_REDIS_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+
+kakao:
+  rest-api-key: ${REST_API_KEY}
+  redirect-uri: ${PROD_REDIRECT_URI}

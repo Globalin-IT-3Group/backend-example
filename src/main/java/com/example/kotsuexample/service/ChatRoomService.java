@@ -111,7 +111,7 @@ public class ChatRoomService {
     }
 
     public ChatRoomType getRoomType(Integer chatRoomId) {
-        System.out.println("아니씨발 진짜 chatRoomId = " + chatRoomId);
+        System.out.println("chatRoomId = " + chatRoomId);
 
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
                 .orElseThrow(() -> new IllegalArgumentException("ChatRoom not found: " + chatRoomId));

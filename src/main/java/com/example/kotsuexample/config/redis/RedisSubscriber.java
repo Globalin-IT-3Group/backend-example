@@ -28,7 +28,9 @@ import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -114,20 +116,26 @@ public class RedisSubscriber implements MessageListener {
     private void handleGroupChatMessage(String roomId, GroupChatMessageDTO dto) {
 
         if (dto.getMessageType() == MessageType.READ) {
-            // 방어: null 체크
             if (dto.getSenderId() == null || dto.getLastReadAt() == null || dto.getMessageId() == null) return;
 
-            int unreadCount = chatReadService.getUnreadMemberCountForMessage(
-                    dto.getChatRoomId(), dto.getMessageId());
+            // 1. 마지막 메시지 id까지 모든 메시지의 unreadCount 계산
+            List<ChatMessage> messages = chatMessageRepository.findByChatRoomIdOrderBySentAtAsc(dto.getChatRoomId());
+            Map<Integer, Integer> unreadCounts = new HashMap<>();
+            for (ChatMessage msg : messages) {
+                if (msg.getId() <= dto.getMessageId()) {
+                    int count = chatReadService.getUnreadMemberCountForMessage(dto.getChatRoomId(), msg.getId());
+                    unreadCounts.put(msg.getId(), count);
+                }
+            }
 
-            // READ 응답 전파 (세션에만)
+            // 2. GroupChatMessageDTO로 빌드
             GroupChatMessageDTO readEvent = GroupChatMessageDTO.builder()
                     .messageType(MessageType.READ)
                     .messageId(dto.getMessageId())
                     .lastReadAt(dto.getLastReadAt())
-                    .unreadCount(unreadCount)
                     .chatRoomId(dto.getChatRoomId())
                     .senderId(dto.getSenderId())
+                    .unreadCounts(unreadCounts) // ⬅️ map 내려줌!
                     .build();
             broadcast(roomId, toJson(readEvent));
             return;
