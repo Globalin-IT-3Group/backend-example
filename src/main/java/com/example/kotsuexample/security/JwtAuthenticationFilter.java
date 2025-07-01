@@ -28,7 +28,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             "/vocab-grammar/upload",
             "/vocab-grammar",
             "/community",
-            "/news"
+            "/news",
+            "/actuator/health"
     );
 
     @Override
