@@ -27,6 +27,7 @@ public class Board {
 
     private String title;
 
+    @Lob
     private String content;
 
     @Column(name = "view_count")

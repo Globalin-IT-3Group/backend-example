@@ -28,6 +28,7 @@ public class StudyRoom {
     private String rule;
     private String notice;
 
+    @Lob
     @Column(name = "image_url")
     private String imageUrl;
 

@@ -20,6 +20,7 @@ public class Note {
     @Column(name = "user_id", nullable = false)
     private Integer userId;
 
+    @Lob
     @Column(name = "image_url")
     private String imageUrl;
 
