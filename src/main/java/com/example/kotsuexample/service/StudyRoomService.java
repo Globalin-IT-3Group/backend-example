@@ -76,7 +76,7 @@ public class StudyRoomService {
         // member 저장 (CascadeType.ALL 이면 studyRoom만 저장해도 persist됨. 안전하게 별도 저장)
         studyRoomMemberRepository.save(member);
 
-        // ✅ [추가] 스터디방 생성과 동시에 그룹 ChatRoom 생성!
+        // ✅ [추가] 스터디방 생성과 동시에 그룹 ChatRoom 생성
         ChatRoom groupChatRoom = ChatRoom.builder()
                 .type(ChatRoomType.GROUP)
                 .studyRoomId(studyRoom.getId())
