@@ -34,12 +34,11 @@ jobs:
           source: build/libs/*.jar
           target: /home/ubuntu/app
 
-      - name: Run SSH commands on EC2
+      - name: Run deploy.sh on EC2
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
           script: |
-            pkill -f 'java -jar' || true
-            nohup java -jar /home/ubuntu/app/*.jar --spring.profiles.active=prod > /home/ubuntu/app.log 2>&1
+            /home/ubuntu/deploy.sh
