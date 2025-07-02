@@ -4,10 +4,13 @@ import com.example.kotsuexample.dto.ChatRoomSummary;
 import com.example.kotsuexample.dto.UserResponse;
 import com.example.kotsuexample.entity.ChatMessage;
 import com.example.kotsuexample.entity.ChatReadStatus;
+import com.example.kotsuexample.entity.ChatRoom;
 import com.example.kotsuexample.entity.ChatRoomMember;
+import com.example.kotsuexample.exception.StudyDataNotFoundException;
 import com.example.kotsuexample.repository.ChatMessageRepository;
 import com.example.kotsuexample.repository.ChatReadStatusRepository;
 import com.example.kotsuexample.repository.ChatRoomMemberRepository;
+import com.example.kotsuexample.repository.ChatRoomRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +28,7 @@ public class ChatReadService {
     private final ChatReadStatusRepository chatReadStatusRepository;
     private final ChatMessageRepository chatMessageRepository;
     private final ChatRoomMemberRepository chatRoomMemberRepository;
+    private final ChatRoomRepository chatRoomRepository;
     private final UserService userService;
 
     // 읽음 처리
@@ -60,26 +64,42 @@ public class ChatReadService {
         }
     }
 
-    public ChatRoomSummary getChatRoomSummary(Integer roomId, Integer userId) {
-        int unread = getUnreadCount(roomId, userId);
-        Optional<ChatMessage> lastMessage = chatMessageRepository.findTopByChatRoomIdOrderBySentAtDesc(roomId);
+    public ChatRoomSummary getChatRoomSummary(Integer chatRoomId, Integer userId) {
+        int unread = getUnreadCount(chatRoomId, userId);
+        Optional<ChatMessage> lastMessage = chatMessageRepository.findTopByChatRoomIdOrderBySentAtDesc(chatRoomId);
 
-        // ✅ 상대방 찾기 (1:1 채팅 기준)
-        Integer otherUserId = chatRoomMemberRepository
-                .findByChatRoomId(roomId).stream()
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new StudyDataNotFoundException("채팅방이 존재하지 않습니다."));
+
+        List<Integer> memberIds = chatRoomMemberRepository.findByChatRoomId(chatRoomId).stream()
                 .map(ChatRoomMember::getUserId)
-                .filter(id -> !id.equals(userId))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("상대방을 찾을 수 없습니다."));
+                .filter(id -> !id.equals(userId)) // 자신 제외
+                .toList();
 
-        UserResponse otherUser = userService.getSimpleUserInfoById(otherUserId);
+        // 유저 정보 조회
+        List<UserResponse> otherUsers;
+        if (memberIds.isEmpty()) {
+            // 상대방 없음 → 자기 자신을 넣기
+            UserResponse self = userService.getSimpleUserInfoById(userId);
+            otherUsers = List.of(self);
+        } else if (memberIds.size() == 1) {
+            // 상대방 1명 → 단일 메서드로 처리
+            UserResponse other = userService.getSimpleUserInfoById(memberIds.get(0));
+            otherUsers = List.of(other);
+        } else {
+            // 그룹 채팅 → 여러 명
+            otherUsers = memberIds.stream()
+                    .map(userService::getSimpleUserInfoById)
+                    .toList();  // 병렬 조회 필요 없으면 stream으로 처리 가능
+        }
 
         return ChatRoomSummary.builder()
-                .roomId(roomId)
+                .roomId(chatRoomId)
                 .unreadCount(unread)
                 .lastMessage(lastMessage.map(ChatMessage::getMessage).orElse(""))
                 .lastMessageAt(lastMessage.map(ChatMessage::getSentAt).orElse(null))
-                .otherUser(otherUser)
+                .otherUsers(otherUsers)
+                .roomType(chatRoom.getType())
                 .build();
     }
 
