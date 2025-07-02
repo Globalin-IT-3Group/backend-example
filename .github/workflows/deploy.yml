@@ -42,5 +42,4 @@ jobs:
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
           script: |
             pkill -f 'java -jar' || true
-            nohup java -jar /home/ubuntu/app/*.jar --spring.profiles.active=prod > /home/ubuntu/app.log 2>&1 &
-            disown
+            nohup java -jar /home/ubuntu/app/*.jar --spring.profiles.active=prod > /home/ubuntu/app.log 2>&1
