@@ -40,7 +40,7 @@ public class StudyRoomController {
         return ResponseEntity.ok(studyRoomService.getStudyRoom(userId, id));
     }
 
-    // 4. 스터디룸 정보 수정 (리더만 가능하도록!)
+    // 4. 스터디룸 정보 수정 (리더만 가능!)
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<StudyRoomDto> updateStudyRoom(
             @CurrentUser Integer userId,
