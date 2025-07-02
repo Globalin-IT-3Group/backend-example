@@ -1,6 +1,7 @@
 package com.example.kotsuexample.service;
 
 import com.example.kotsuexample.config.redis.RedisUtil;
+import com.example.kotsuexample.config.s3.S3UploadProperties;
 import com.example.kotsuexample.dto.*;
 import com.example.kotsuexample.entity.User;
 import com.example.kotsuexample.exception.user.*;
@@ -12,6 +13,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +24,8 @@ public class UserService {
     private final UserRepository userRepository;
     private final LoginTokenHandler loginTokenHandler;
     private final RedisUtil redisUtil;
+    private final S3Uploader s3Uploader;
+    private final S3UploadProperties s3UploadProperties;
 
     public Boolean isEmailDuplicated(String email) {
         return userRepository.existsByEmail(email);
@@ -176,14 +182,6 @@ public class UserService {
         return user.toUserResponse();
     }
 
-    public String updateProfileImage(Integer userId, String profileImage) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundByIdException("아이디 값에 따른 유저가 조회되지 않습니다."));
-        user.updateProfileImage(profileImage); // TEXT, CLOB 컬럼
-        userRepository.save(user);
-        return profileImage;
-    }
-
     public void validExistUser(Integer userId) {
         userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundByIdException("아이디 값에 따른 유저가 조회되지 않습니다."));
@@ -192,5 +190,22 @@ public class UserService {
     public User getUserById(Integer userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundByIdException("아이디 값에 따른 유저가 조회되지 않습니다."));
+    }
+
+    public String uploadProfileImageToS3(Integer userId, MultipartFile file) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundByIdException("아이디 값에 따른 유저가 조회되지 않습니다."));
+
+        String dir = s3UploadProperties.getUploadDir(); // 프로필에 따라 local/prod
+        String fileName = "profile-" + userId + "-" + UUID.randomUUID() + ".jpg";
+
+        String fullPath = dir + fileName;
+
+        String imageUrl = s3Uploader.upload(file, fullPath); // S3에 업로드
+
+        user.updateProfileImage(imageUrl); // DB에는 URL만 저장
+        userRepository.save(user);
+
+        return imageUrl;
     }
 }

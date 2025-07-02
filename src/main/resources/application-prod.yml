@@ -18,6 +18,9 @@ spring:
     hibernate:
       ddl-auto: create
 
+s3:
+  upload-dir: user-uploads-prod/
+
 kakao:
   rest-api-key: ${REST_API_KEY}
   redirect-uri: ${REDIRECT_URI}

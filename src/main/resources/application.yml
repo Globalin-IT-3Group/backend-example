@@ -21,5 +21,15 @@ management:
       exposure:
         include: health,info
 
+cloud:
+  aws:
+    s3:
+      bucket: kotsubucket
+    region:
+      static: ap-northeast-2
+    credentials:
+      access-key: ${AWS_ACCESS_KEY}
+      secret-key: ${AWS_SECRET_KEY}
+
 jwt:
   secret: ${JWT_SECRET}

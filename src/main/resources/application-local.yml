@@ -19,6 +19,9 @@ spring:
     hibernate:
       ddl-auto: update
 
+s3:
+  upload-dir: user-uploads-local/
+
 kakao:
   rest-api-key: ${REST_API_KEY}
   redirect-uri: ${LOCAL_REDIRECT_URI}
