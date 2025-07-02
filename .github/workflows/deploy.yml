@@ -43,3 +43,4 @@ jobs:
           script: |
             pkill -f 'java -jar' || true
             nohup java -jar /home/ubuntu/app/*.jar --spring.profiles.active=prod > /home/ubuntu/app.log 2>&1 &
+            disown
