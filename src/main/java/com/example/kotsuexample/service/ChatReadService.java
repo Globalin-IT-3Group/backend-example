@@ -2,15 +2,10 @@ package com.example.kotsuexample.service;
 
 import com.example.kotsuexample.dto.ChatRoomSummary;
 import com.example.kotsuexample.dto.UserResponse;
-import com.example.kotsuexample.entity.ChatMessage;
-import com.example.kotsuexample.entity.ChatReadStatus;
-import com.example.kotsuexample.entity.ChatRoom;
-import com.example.kotsuexample.entity.ChatRoomMember;
+import com.example.kotsuexample.entity.*;
+import com.example.kotsuexample.entity.enums.ChatRoomType;
 import com.example.kotsuexample.exception.StudyDataNotFoundException;
-import com.example.kotsuexample.repository.ChatMessageRepository;
-import com.example.kotsuexample.repository.ChatReadStatusRepository;
-import com.example.kotsuexample.repository.ChatRoomMemberRepository;
-import com.example.kotsuexample.repository.ChatRoomRepository;
+import com.example.kotsuexample.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +24,7 @@ public class ChatReadService {
     private final ChatMessageRepository chatMessageRepository;
     private final ChatRoomMemberRepository chatRoomMemberRepository;
     private final ChatRoomRepository chatRoomRepository;
+    private final StudyRoomRepository studyRoomRepository;
     private final UserService userService;
 
     // 읽음 처리
@@ -73,24 +69,32 @@ public class ChatReadService {
 
         List<Integer> memberIds = chatRoomMemberRepository.findByChatRoomId(chatRoomId).stream()
                 .map(ChatRoomMember::getUserId)
-                .filter(id -> !id.equals(userId)) // 자신 제외
+                .filter(id -> !id.equals(userId))
                 .toList();
 
-        // 유저 정보 조회
         List<UserResponse> otherUsers;
         if (memberIds.isEmpty()) {
-            // 상대방 없음 → 자기 자신을 넣기
             UserResponse self = userService.getSimpleUserInfoById(userId);
             otherUsers = List.of(self);
         } else if (memberIds.size() == 1) {
-            // 상대방 1명 → 단일 메서드로 처리
             UserResponse other = userService.getSimpleUserInfoById(memberIds.get(0));
             otherUsers = List.of(other);
         } else {
-            // 그룹 채팅 → 여러 명
             otherUsers = memberIds.stream()
                     .map(userService::getSimpleUserInfoById)
-                    .toList();  // 병렬 조회 필요 없으면 stream으로 처리 가능
+                    .toList();
+        }
+
+        // GROUP일 경우 스터디 정보 조회
+        String studyRoomName = null;
+        String studyRoomImageUrl = null;
+        if (chatRoom.getType() == ChatRoomType.GROUP) {
+            if (chatRoom.getStudyRoomId() != null) {
+                StudyRoom studyRoom = studyRoomRepository.findById(chatRoom.getStudyRoomId())
+                        .orElseThrow(() -> new StudyDataNotFoundException("스터디룸이 존재하지 않습니다."));
+                studyRoomName = studyRoom.getName();
+                studyRoomImageUrl = studyRoom.getImageUrl(); // 이 필드가 StudyRoom 엔티티에 있어야 함
+            }
         }
 
         return ChatRoomSummary.builder()
@@ -100,6 +104,8 @@ public class ChatReadService {
                 .lastMessageAt(lastMessage.map(ChatMessage::getSentAt).orElse(null))
                 .otherUsers(otherUsers)
                 .roomType(chatRoom.getType())
+                .studyRoomName(studyRoomName)
+                .studyRoomImageUrl(studyRoomImageUrl)
                 .build();
     }
 

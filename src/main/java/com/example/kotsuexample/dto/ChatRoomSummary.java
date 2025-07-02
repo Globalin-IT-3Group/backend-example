@@ -20,4 +20,6 @@ public class ChatRoomSummary {
     private LocalDateTime lastMessageAt;
     private List<UserResponse> otherUsers;
     private ChatRoomType roomType;
+    private String studyRoomName;
+    private String studyRoomImageUrl;
 }
