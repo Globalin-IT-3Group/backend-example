@@ -1,5 +1,6 @@
 package com.example.kotsuexample.service;
 
+import com.example.kotsuexample.config.s3.S3UploadProperties;
 import com.example.kotsuexample.dto.study.*;
 import com.example.kotsuexample.entity.*;
 import com.example.kotsuexample.entity.enums.ChatRoomType;
@@ -10,10 +11,12 @@ import com.example.kotsuexample.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -26,10 +29,12 @@ public class StudyRoomService {
     private final StudyRequestRepository studyRequestRepository;
     private final ChatRoomMemberRepository chatRoomMemberRepository;
     private final ChatRoomRepository chatRoomRepository;
+    private final S3Uploader s3Uploader;
+    private final S3UploadProperties s3UploadProperties;
 
     // 1. 생성
     @Transactional
-    public StudyRoomDto createStudyRoom(Integer userId, CreateStudyRoomRequest dto) {
+    public StudyRoomDto createStudyRoom(Integer userId, CreateStudyRoomRequest dto, MultipartFile imageFile) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundByIdException("유저를 찾을 수 없습니다."));
 
@@ -37,11 +42,18 @@ public class StudyRoomService {
             throw new DuplicateException("이미 존재하는 스터디룸 이름입니다.");
         }
 
+        String imageUrl = null;
+        if (imageFile != null && !imageFile.isEmpty()) {
+            String fileName = "studyroom-" + UUID.randomUUID() + ".jpg";
+            String uploadPath = s3UploadProperties.getUploadDir() + fileName;
+            imageUrl = s3Uploader.upload(imageFile, uploadPath);
+        }
+
         StudyRoom studyRoom = StudyRoom.builder()
                 .name(dto.getName())
                 .rule(dto.getRule())
                 .notice(dto.getNotice())
-                .imageUrl(dto.getImageUrl())
+                .imageUrl(imageUrl)
                 .tags(dto.getTags())
                 .leader(user)
                 .createdAt(LocalDateTime.now())
@@ -135,11 +147,13 @@ public class StudyRoomService {
 
     // 4. 수정 (리더만 가능)
     @Transactional
-    public StudyRoomDto updateStudyRoom(Integer userId, Integer id, UpdateStudyRoomRequest dto) {
+    public StudyRoomDto updateStudyRoom(Integer userId, Integer id, UpdateStudyRoomRequest dto, MultipartFile imageFile) {
         StudyRoom room = studyRoomRepository.findById(id)
                 .orElseThrow(() -> new StudyDataNotFoundException("스터디룸이 존재하지 않습니다."));
 
-        if (!room.getLeader().getId().equals(userId)) throw new OperationNotAllowedException("수정 권한이 없습니다.");
+        if (!room.getLeader().getId().equals(userId)) {
+            throw new OperationNotAllowedException("수정 권한이 없습니다.");
+        }
 
         int currentMemberCount = room.getMembers().size();
         if (dto.getMaxUserCount() < currentMemberCount) {
@@ -150,13 +164,24 @@ public class StudyRoomService {
 
         String inputtedName = dto.getName();
         boolean isExistStudyRoomName = studyRoomRepository.existsByName(inputtedName);
-        if (!room.getName().equals(inputtedName) && isExistStudyRoomName) throw new DuplicateException("같은 이름의 스터디방이 존재합니다! 다른 방 이름을 입력해주세요!");
+        if (!room.getName().equals(inputtedName) && isExistStudyRoomName) {
+            throw new DuplicateException("같은 이름의 스터디방이 존재합니다! 다른 방 이름을 입력해주세요!");
+        }
 
+        // ✅ 이미지 업로드 처리 (선택사항)
+        String imageUrl = dto.getImageUrl(); // 기본값: 기존 URL 유지
+        if (imageFile != null && !imageFile.isEmpty()) {
+            String fileName = "studyroom-" + room.getId() + "-" + UUID.randomUUID() + ".jpg";
+            String uploadPath = s3UploadProperties.getUploadDir() + fileName;
+            imageUrl = s3Uploader.upload(imageFile, uploadPath);
+        }
+
+        // ✅ 실제 엔티티 업데이트
         room.update(
                 dto.getName(),
                 dto.getRule(),
                 dto.getNotice(),
-                dto.getImageUrl(),
+                imageUrl,
                 dto.getMaxUserCount(),
                 dto.getTags()
         );

@@ -12,7 +12,6 @@ public class CreateStudyRoomRequest {
     private String name;
     private String rule;
     private String notice;
-    private String imageUrl;
     private Integer maxUserCount;
     private Set<StudyTag> tags;
 }

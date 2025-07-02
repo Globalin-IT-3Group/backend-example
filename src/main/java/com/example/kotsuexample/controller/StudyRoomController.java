@@ -4,8 +4,10 @@ import com.example.kotsuexample.config.CurrentUser;
 import com.example.kotsuexample.dto.study.*;
 import com.example.kotsuexample.service.StudyRoomService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -17,12 +19,13 @@ public class StudyRoomController {
     private final StudyRoomService studyRoomService;
 
     // 1. 스터디룸 생성
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<StudyRoomDto> createStudyRoom(
             @CurrentUser Integer userId,
-            @RequestBody CreateStudyRoomRequest dto
+            @RequestPart("data") CreateStudyRoomRequest dto,
+            @RequestPart(value = "image", required = false) MultipartFile imageFile
     ) {
-        return ResponseEntity.ok(studyRoomService.createStudyRoom(userId, dto));
+        return ResponseEntity.ok(studyRoomService.createStudyRoom(userId, dto, imageFile));
     }
 
     // 2. 스터디룸 목록 조회
@@ -38,13 +41,14 @@ public class StudyRoomController {
     }
 
     // 4. 스터디룸 정보 수정 (리더만 가능하도록!)
-    @PutMapping("/{id}")
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<StudyRoomDto> updateStudyRoom(
             @CurrentUser Integer userId,
             @PathVariable Integer id,
-            @RequestBody UpdateStudyRoomRequest dto
+            @RequestPart("data") UpdateStudyRoomRequest dto,
+            @RequestPart(value = "image", required = false) MultipartFile imageFile
     ) {
-        return ResponseEntity.ok(studyRoomService.updateStudyRoom(userId, id, dto));
+        return ResponseEntity.ok(studyRoomService.updateStudyRoom(userId, id, dto, imageFile));
     }
 
     // 5. 스터디룸 삭제 (리더만 가능하도록!)
