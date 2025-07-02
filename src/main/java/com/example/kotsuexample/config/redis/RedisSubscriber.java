@@ -203,7 +203,7 @@ public class RedisSubscriber implements MessageListener {
             } catch (Exception e) {
                 e.printStackTrace();
                 // 세션이 이미 죽었으면 map에서 제거 (선택)
-                // sessionManager.removeSession(roomId, session);
+                 sessionManager.removeSession(roomId, session);
             }
         }
     }

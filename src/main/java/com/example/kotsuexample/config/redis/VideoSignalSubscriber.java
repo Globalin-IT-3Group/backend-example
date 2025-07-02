@@ -30,10 +30,13 @@ public class VideoSignalSubscriber implements MessageListener {
         for (WebSocketSession session : sessionManager.getSessions(roomId)) {
             try {
                 if (session.isOpen()) {
-                    session.sendMessage(new TextMessage(payload));
+                    synchronized (session) {
+                        session.sendMessage(new TextMessage(payload));
+                    }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
+                sessionManager.removeSession(roomId, session);
             }
         }
     }
