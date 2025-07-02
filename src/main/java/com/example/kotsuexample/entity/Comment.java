@@ -22,7 +22,6 @@ public class Comment {
     @JoinColumn(name = "user_id")
     private User user;
 
-    // **게시글(Board)과 연관관계 설정**
     @ManyToOne
     @JoinColumn(name = "board_id")
     private Board board;

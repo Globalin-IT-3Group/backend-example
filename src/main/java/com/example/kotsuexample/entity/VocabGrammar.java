@@ -28,9 +28,9 @@ public class VocabGrammar {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "exam_type", nullable = false)
-    private ExamType examType;       // JLPT, JPT, TOPIK
+    private ExamType examType;       // JLPT, JPT
 
-    @Column(name = "jp_word", length = 255)
+    @Column(name = "jp_word")
     private String jpWord;
 
     @Column(name = "hiragana", length = 255)

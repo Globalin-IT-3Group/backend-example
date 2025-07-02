@@ -56,10 +56,6 @@ public class User {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-//    @JsonIgnore
-//    @OneToMany(mappedBy = "leader", cascade = CascadeType.ALL)
-//    private List<StudyRoom> studyRooms = new ArrayList<>();
-
     @Builder
     public User(String phoneNumber, String email, String password, String nickname,
                 String question, String answer, String profileImage, String profileMessage,
