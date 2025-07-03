@@ -88,12 +88,10 @@ public class StudyNoteService {
         String thumbnailUrl;
 
         if (image != null && !image.isEmpty()) {
-            // 새 파일 있으면 업로드
             String fileName = "study-note-" + noteId + "-" + System.currentTimeMillis() + ".jpg";
             String uploadPath = "user-uploads-prod/" + fileName;
             thumbnailUrl = s3Uploader.upload(image, uploadPath);
         } else if (dto.getThumbnail() == null || dto.getThumbnail().isBlank()) {
-            // 이미지와 썸네일 경로 모두 없으면 디폴트
             thumbnailUrl = "https://kotsubucket.s3.ap-northeast-2.amazonaws.com/user-uploads-prod/study_note_default.jpg";
         } else {
             thumbnailUrl = dto.getThumbnail();
