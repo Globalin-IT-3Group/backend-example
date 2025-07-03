@@ -128,7 +128,6 @@ public class ChatRoomService {
     public Integer getStudyRoomIdByChatRoomId(Integer chatRoomId) {
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
                 .orElseThrow(() -> new StudyDataNotFoundException("채팅방이 존재하지 않습니다."));
-        // 만약 studyRoomId 필드가 null일 수 있으니 방어
         if (chatRoom.getStudyRoomId() == null)
             throw new StudyDataNotFoundException("해당 채팅방에 연결된 스터디룸이 없습니다.");
         return chatRoom.getStudyRoomId();
