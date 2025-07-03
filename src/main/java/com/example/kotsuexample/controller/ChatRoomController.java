@@ -65,4 +65,10 @@ public class ChatRoomController {
         Integer chatRoomId = chatRoomService.getGroupChatRoomIdByStudyRoomId(studyRoomId);
         return ResponseEntity.ok(chatRoomId);
     }
+
+    @GetMapping("/{chatRoomId}/study-id")
+    public ResponseEntity<Integer> getStudyRoomIdByChatRoomId(@PathVariable Integer chatRoomId) {
+        Integer studyRoomId = chatRoomService.getStudyRoomIdByChatRoomId(chatRoomId);
+        return ResponseEntity.ok(studyRoomId);
+    }
 }
