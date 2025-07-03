@@ -56,7 +56,6 @@ public class StudyNoteService {
 
         String thumbnailUrl;
         if (image == null || image.isEmpty()) {
-            // 디폴트 썸네일
             thumbnailUrl = "https://kotsubucket.s3.ap-northeast-2.amazonaws.com/user-uploads-prod/study_note_default.jpg";
         } else {
             String fileName = "study-note-" + userId + "-" + System.currentTimeMillis() + ".jpg";
