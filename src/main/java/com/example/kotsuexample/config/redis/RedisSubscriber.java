@@ -73,9 +73,25 @@ public class RedisSubscriber implements MessageListener {
     // 1:1 채팅 - 필요한 경우만 GroupChatMessageDTO에서 값 읽음
     private void handleSingleChatMessage(String roomId, GroupChatMessageDTO dto) {
         if (dto.getMessageType() == MessageType.READ) {
-            // 1:1 채팅 읽음 처리 (단순화)
-            chatReadService.markChatAsRead(dto.getChatRoomId(), dto.getSenderId(),
-                    dto.getLastReadAt() != null ? OffsetDateTime.parse(dto.getLastReadAt()).toLocalDateTime() : LocalDateTime.now()
+            // --- null 방어 코드 추가! ---
+            if (dto.getSenderId() == null) {
+                System.err.println("❌ senderId(userId)가 null임! -> 읽음 처리 불가");
+                return;
+            }
+            LocalDateTime lastReadAt = null;
+            try {
+                lastReadAt = dto.getLastReadAt() != null
+                        ? OffsetDateTime.parse(dto.getLastReadAt()).toLocalDateTime()
+                        : LocalDateTime.now();
+            } catch (Exception e) {
+                System.err.println("❌ lastReadAt 파싱 실패: " + dto.getLastReadAt());
+                lastReadAt = LocalDateTime.now();
+            }
+
+            chatReadService.markChatAsRead(
+                    dto.getChatRoomId(),
+                    dto.getSenderId(),
+                    lastReadAt
             );
             broadcast(roomId, toJson(dto));
             return;

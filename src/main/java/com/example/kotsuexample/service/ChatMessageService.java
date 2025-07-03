@@ -4,10 +4,7 @@ import com.example.kotsuexample.config.redis.RedisPublisher;
 import com.example.kotsuexample.dto.ChatMessageDTO;
 import com.example.kotsuexample.dto.ChatReadEvent;
 import com.example.kotsuexample.dto.GroupChatMessageDTO;
-import com.example.kotsuexample.entity.ChatMessage;
-import com.example.kotsuexample.entity.ChatReadStatus;
-import com.example.kotsuexample.entity.ChatRoomMember;
-import com.example.kotsuexample.entity.User;
+import com.example.kotsuexample.entity.*;
 import com.example.kotsuexample.entity.enums.MessageType;
 import com.example.kotsuexample.exception.StudyDataNotFoundException;
 import com.example.kotsuexample.repository.*;
@@ -72,19 +69,18 @@ public class ChatMessageService {
     }
 
     // 스터디방/그룹방: 메시지별 '읽지 않은 인원 수' 포함해서 반환
-    public List<GroupChatMessageDTO> getGroupMessagesWithUnreadCount(Integer studyRoomId, Integer userId) {
+    public List<GroupChatMessageDTO> getGroupMessagesWithUnreadCount(Integer chatRoomId, Integer userId) {
         // 1. 스터디룸 → 그룹 채팅방 id 얻기
-        Integer chatRoomId = chatRoomRepository.findGroupChatRoomIdByStudyRoomId(studyRoomId)
-                .orElseThrow(() -> new StudyDataNotFoundException("스터디방에 채팅방이 존재하지 않습니다."));
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new StudyDataNotFoundException("채팅방이 존재하지 않습니다."));
 
-        // 2. 방 멤버 체크 (chatRoomId로)
         boolean isMember = chatRoomMemberRepository.existsByChatRoomIdAndUserId(chatRoomId, userId);
         if (!isMember) {
             throw new IllegalArgumentException("채팅방 멤버가 아닙니다.");
         }
 
         // 3. 메시지 불러오기
-        List<ChatMessage> messages = chatMessageRepository.findByChatRoomIdOrderBySentAtAsc(chatRoomId);
+        List<ChatMessage> messages = chatMessageRepository.findByChatRoomIdOrderBySentAtAsc(chatRoom.getId());
 
         Set<Integer> senderIds = messages.stream().map(ChatMessage::getSenderId).collect(Collectors.toSet());
         Map<Integer, User> userMap = userRepository.findAllById(senderIds)
@@ -106,7 +102,7 @@ public class ChatMessageService {
                                             .atOffset(ZoneOffset.UTC)
                                             .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
                             )
-                            .unreadCount(chatReadService.getUnreadMemberCountForMessage(chatRoomId, msg.getId()))
+                            .unreadCount(chatReadService.getUnreadMemberCountForMessage(chatRoom.getId(), msg.getId()))
                             .messageId(msg.getId())
                             .build();
                 })

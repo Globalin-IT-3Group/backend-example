@@ -8,6 +8,7 @@ import com.example.kotsuexample.entity.ChatRoomMember;
 import com.example.kotsuexample.entity.User;
 import com.example.kotsuexample.entity.enums.ChatRoomType;
 import com.example.kotsuexample.exception.ChatRoomNotFoundException;
+import com.example.kotsuexample.exception.StudyDataNotFoundException;
 import com.example.kotsuexample.repository.ChatRoomMemberRepository;
 import com.example.kotsuexample.repository.ChatRoomRepository;
 import com.example.kotsuexample.repository.UserRepository;
@@ -116,5 +117,11 @@ public class ChatRoomService {
         ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
                 .orElseThrow(() -> new IllegalArgumentException("ChatRoom not found: " + chatRoomId));
         return chatRoom.getType();
+    }
+
+    public Integer getGroupChatRoomIdByStudyRoomId(Integer studyRoomId) {
+        return chatRoomRepository.findGroupChatRoomByStudyRoomId(studyRoomId)
+                .map(ChatRoom::getId)
+                .orElseThrow(() -> new StudyDataNotFoundException("해당 스터디의 그룹 채팅방이 없습니다."));
     }
 }

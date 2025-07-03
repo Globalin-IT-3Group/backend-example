@@ -25,7 +25,6 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Integer> {
 
     Optional<ChatRoom> findByTypeAndStudyRoomId(ChatRoomType chatRoomType, Integer studyRoomId);
 
-    // chatRoomRepository
-    @Query("select c.id from ChatRoom c where c.studyRoomId = :studyRoomId and c.type = 'GROUP'")
-    Optional<Integer> findGroupChatRoomIdByStudyRoomId(@Param("studyRoomId") Integer studyRoomId);
+    @Query("select c from ChatRoom c where c.studyRoomId = :studyRoomId and c.type = 'GROUP'")
+    Optional<ChatRoom> findGroupChatRoomByStudyRoomId(@Param("studyRoomId") Integer studyRoomId);
 }
