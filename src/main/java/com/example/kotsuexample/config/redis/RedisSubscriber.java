@@ -13,7 +13,6 @@ import com.example.kotsuexample.service.ChatReadService;
 import com.example.kotsuexample.service.ChatRoomService;
 import com.example.kotsuexample.service.SseService;
 import com.example.kotsuexample.service.UserService;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.connection.Message;
@@ -95,6 +94,7 @@ public class RedisSubscriber implements MessageListener {
 
         broadcast(roomId, toJson(dto));
 
+        // TODO: 일단 대기 이 코드는
         // SSE 알림 발송
         List<Integer> otherUserIds = getOtherUserIdsInRoom(dto.getChatRoomId(), dto.getSenderId());
         for (Integer targetId : otherUserIds) {

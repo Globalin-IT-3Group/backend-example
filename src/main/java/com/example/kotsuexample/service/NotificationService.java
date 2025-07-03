@@ -26,15 +26,12 @@ public class NotificationService {
     private final SseService sseService;
     private final UserService userService;
 
-    public void notifyFriendRequest(Integer senderId, Integer receiverId, String content) {
-
-        System.out.println("notifyFriendRequest 메서드 호출");
-
+    public void sseNotifyRequest(Integer senderId, Integer receiverId, String content, NotificationType type) {
         // 1. DB 저장
         Notification notification = Notification.builder()
                 .userId(receiverId)
                 .senderId(senderId) // ✅ 누가 보냈는지 저장
-                .type(NotificationType.FRIEND)
+                .type(type)
                 .content(content)
                 .isRead(false) // ✅ 기본값 false
                 .createdAt(LocalDateTime.now())
@@ -44,38 +41,20 @@ public class NotificationService {
         // 2. 실시간 전송 (SSE)
         UserResponse sender = userService.getSimpleUserInfoById(senderId);
         SseNotificationDTO dto = SseNotificationDTO.builder()
-                .type(NotificationType.FRIEND)
+                .type(type)
                 .sender(sender)
                 .content(content)
                 .createdAt(notification.getCreatedAt())
                 .build();
-        sseService.send(receiverId, NotificationType.FRIEND, dto);
+        sseService.send(receiverId, type, dto);
     }
-
-//    public List<NotificationResponse> getNotifications(Integer userId) {
-//        return notificationRepository.findByUserIdOrderByCreatedAtDesc(userId, pageRequest)
-//                .stream()
-//                .map(notification -> {
-//                    UserResponse sender = userService.getSimpleUserInfoById(notification.getSenderId());
-//
-//                    return NotificationResponse.builder()
-//                            .id(notification.getId())
-//                            .type(notification.getType())
-//                            .content(notification.getContent())
-//                            .isRead(notification.isRead())
-//                            .createdAt(notification.getCreatedAt())
-//                            .sender(sender)
-//                            .build();
-//                })
-//                .toList();
-//    }
 
     public void deleteNotification(Integer userId, Integer notificationId) {
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new NotificationNotFoundException("알림이 존재하지 않습니다."));
 
         if (!notification.getUserId().equals(userId)) {
-            throw new RuntimeException("해당 알림을 삭제할 권한이 없습니다.");
+            throw new NotificationAccessDeniedException("해당 알림을 삭제할 권한이 없습니다.");
         }
 
         notificationRepository.delete(notification);

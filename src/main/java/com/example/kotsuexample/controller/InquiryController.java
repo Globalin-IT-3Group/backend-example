@@ -35,14 +35,12 @@ public class InquiryController {
         inquiryService.createInquiry(userId, dto);
     }
 
-    // 4. 문의 답변 (관리자 한정, 답변 알림도 이쪽에서 트리거)
-    @PostMapping("/{id}/reply")
+    // 4. 문의 답변 (관리자 한정)
+    @PostMapping("/{inquiryId}/reply")
     public void replyToInquiry(
-            @PathVariable Integer id,
+            @PathVariable Integer inquiryId,
             @CurrentUser Integer adminId,
             @RequestBody InquiryReplyDTO dto) {
-        System.out.println(dto.getAdminReply());
-        inquiryService.replyToInquiry(id, adminId, dto);
-        // 알림 서비스 호출 등 (예: notificationService.notifyUser(...))
+        inquiryService.replyToInquiry(inquiryId, adminId, dto);
     }
 }

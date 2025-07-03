@@ -19,23 +19,28 @@ public class SseService {
 
         emitter.onCompletion(() -> emitters.remove(userId));
         emitter.onTimeout(() -> emitters.remove(userId));
+        emitter.onError((e) -> emitters.remove(userId));
+
+        // ✅ 연결 즉시 더미 데이터라도 전송 (크롬 브라우저에서 필수!)
+        try {
+            emitter.send(SseEmitter.event()
+                    .name("connect")
+                    .data("connected!")); // 혹은 빈 문자열도 OK
+        } catch (IOException e) {
+            emitter.completeWithError(e);
+        }
+
         return emitter;
     }
 
     public void send(Integer receiverId, NotificationType type, Object data) {
-
-        System.out.println("SSE send() 호출");
-
         SseEmitter emitter = emitters.get(receiverId);
         if (emitter != null) {
             try {
                 emitter.send(SseEmitter.event()
                         .name(type.name().toLowerCase()) // ex: "friend", "study", "system", "chat"
                         .data(data));
-
-                System.out.println("보내짐!!");
             } catch (IOException e) {
-                System.out.println("안 보내짐 ㅜㅜ");
                 emitters.remove(receiverId);
             }
         }

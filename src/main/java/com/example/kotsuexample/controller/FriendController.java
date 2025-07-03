@@ -5,6 +5,7 @@ import com.example.kotsuexample.dto.ResponseData;
 import com.example.kotsuexample.dto.UserResponse;
 import com.example.kotsuexample.entity.Friend;
 import com.example.kotsuexample.entity.enums.FriendStatus;
+import com.example.kotsuexample.entity.enums.NotificationType;
 import com.example.kotsuexample.exception.NoneInputValueException;
 import com.example.kotsuexample.service.FriendService;
 import com.example.kotsuexample.service.NotificationService;
@@ -47,7 +48,7 @@ public class FriendController {
         // 알림은 "새 요청"일 때만 보냄
         if (isFriend) {
             String content = "새 친구 요청이 도착했습니다!";
-            notificationService.notifyFriendRequest(userId, addresseeId, content);
+            notificationService.sseNotifyRequest(userId, addresseeId, content, NotificationType.FRIEND);
         }
 
         return ResponseEntity.ok(ResponseData.<Boolean>builder().data(isFriend).build());

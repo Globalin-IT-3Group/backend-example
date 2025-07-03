@@ -5,8 +5,10 @@ import com.example.kotsuexample.dto.note.NoteRequest;
 import com.example.kotsuexample.dto.note.NoteResponse;
 import com.example.kotsuexample.service.NoteService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -30,18 +32,26 @@ public class NoteController {
     }
 
     // 노트 작성
-    @PostMapping("/")
-    public ResponseEntity<Void> createNote(@CurrentUser Integer userId, @RequestBody NoteRequest request) {
-        noteService.createNote(userId, request);
+    @PostMapping(value = "/", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Void> createNote(
+            @CurrentUser Integer userId,
+            @RequestPart("note") NoteRequest request,          // 일반 데이터
+            @RequestPart(value = "image", required = false) MultipartFile image // 파일
+    ) {
+        noteService.createNote(userId, request, image);
         return ResponseEntity.ok().build();
     }
 
+
     // 노트 수정
-    @PutMapping("/{noteId}")
-    public ResponseEntity<Void> updateNote(@CurrentUser Integer userId,
-                                           @PathVariable Integer noteId,
-                                           @RequestBody NoteRequest request) {
-        noteService.updateNote(userId, noteId, request);
+    @PutMapping(value = "/{noteId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Void> updateNote(
+            @CurrentUser Integer userId,
+            @PathVariable Integer noteId,
+            @RequestPart("note") NoteRequest request,
+            @RequestPart(value = "image", required = false) MultipartFile image
+    ) {
+        noteService.updateNote(userId, noteId, request, image);
         return ResponseEntity.ok().build();
     }
 

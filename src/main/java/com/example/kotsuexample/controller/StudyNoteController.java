@@ -6,7 +6,9 @@ import com.example.kotsuexample.service.StudyNoteService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -34,15 +36,24 @@ public class StudyNoteController {
     }
 
     // 노트 생성
-    @PostMapping
-    public void createNote(@CurrentUser Integer userId, @RequestBody StudyNoteCreateDTO dto) {
-        studyNoteService.createNote(userId, dto);
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public void createNote(
+            @CurrentUser Integer userId,
+            @RequestPart("note") StudyNoteCreateDTO dto,
+            @RequestPart(value = "image", required = false) MultipartFile image
+    ) {
+        studyNoteService.createNote(userId, dto, image);
     }
 
     // 노트 수정
-    @PutMapping("/{noteId}")
-    public void updateNote(@CurrentUser Integer userId, @PathVariable Integer noteId, @RequestBody StudyNoteUpdateDTO dto) {
-        studyNoteService.updateNote(userId, noteId, dto);
+    @PutMapping(value = "/{noteId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public void updateNote(
+            @CurrentUser Integer userId,
+            @PathVariable Integer noteId,
+            @RequestPart("note") StudyNoteUpdateDTO dto,
+            @RequestPart(value = "image", required = false) MultipartFile image
+    ) {
+        studyNoteService.updateNote(userId, noteId, dto, image);
     }
 
     // 노트 삭제

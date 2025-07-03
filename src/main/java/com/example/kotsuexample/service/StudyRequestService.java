@@ -5,6 +5,7 @@ import com.example.kotsuexample.dto.study.request.StudyRequestCreateDTO;
 import com.example.kotsuexample.dto.study.request.StudyRequestResponse;
 import com.example.kotsuexample.entity.*;
 import com.example.kotsuexample.entity.enums.ChatRoomType;
+import com.example.kotsuexample.entity.enums.NotificationType;
 import com.example.kotsuexample.entity.enums.StudyRequestStatus;
 import com.example.kotsuexample.exception.ExceedStudyMemberException;
 import com.example.kotsuexample.exception.StudyDataNotFoundException;
@@ -33,6 +34,7 @@ public class StudyRequestService {
     private final StudyRoomMemberRepository studyRoomMemberRepository;
     private final ChatRoomMemberRepository chatRoomMemberRepository;
     private final ChatRoomRepository chatRoomRepository;
+    private final NotificationService notificationService;
 
     // 1. 신청
     @Transactional
@@ -41,7 +43,9 @@ public class StudyRequestService {
         StudyRecruit recruit = studyRecruitRepository.findById(req.getStudyRecruitId())
                 .orElseThrow(() -> new StudyDataNotFoundException("모집글 없음"));
 
-        if (recruit.getLeader().getId().equals(userId)) throw new UserUnauthorizedException("방장은 자신의 모집글에 신청할 수 없습니다.");
+        Integer leaderId = recruit.getLeader().getId();
+
+        if (leaderId.equals(userId)) throw new UserUnauthorizedException("방장은 자신의 모집글에 신청할 수 없습니다.");
 
         boolean exists = studyRequestRepository.findByUserIdAndStudyRecruitId(userId, recruit.getId()).isPresent();
         if (exists) throw new DuplicateException("이미 신청한 내역이 있습니다.");
@@ -55,6 +59,11 @@ public class StudyRequestService {
                 .requestedAt(LocalDateTime.now())
                 .build();
         studyRequestRepository.save(entity);
+
+        // 리더한테 신청 알림 보내기
+        String content = "스터디 참여 신청이 도착했습니다!";
+        notificationService.sseNotifyRequest(userId, leaderId, content, NotificationType.STUDY);
+
         return entity.getId();
     }
 
@@ -127,9 +136,11 @@ public class StudyRequestService {
         StudyRequestStatus newStatus = StudyRequestStatus.valueOf(status.toUpperCase());
         req.updateStatus(newStatus);
 
+        StudyRoom studyRoom = null;
+
         // 승인 시에만 멤버로 추가
         if (newStatus == StudyRequestStatus.ACCEPTED) {
-            StudyRoom studyRoom = recruit.getStudyRoom();
+            studyRoom = recruit.getStudyRoom();
             User user = req.getUser();
 
             // 이미 멤버인지 중복체크
@@ -170,7 +181,23 @@ public class StudyRequestService {
                 }
             }
         }
-        // save 생략 (영속성 컨텍스트에 의해 자동 반영)
+
+        // 알림 보내기
+        String studyRoomName = studyRoom.getName();
+        User applicant = req.getUser();
+        Integer applicantId = applicant.getId();
+
+        String content =
+                newStatus == StudyRequestStatus.ACCEPTED
+                        ? ("[" + studyRoomName + "]방의 리더가 참여 신청을 승인했습니다!")
+                        : ("[" + studyRoomName + "]방의 리더가 참여 신청을 거절했습니다!");
+
+        notificationService.sseNotifyRequest(
+                leaderId,              // 보낸 사람 (리더)
+                applicantId,           // 받는 사람 (지원자)
+                content,
+                NotificationType.STUDY
+        );
     }
 
     // 매일 새벽 3시에 실행 (cron: 0 0 3 * * ?)
