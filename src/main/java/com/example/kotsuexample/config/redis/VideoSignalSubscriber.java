@@ -2,7 +2,6 @@ package com.example.kotsuexample.config.redis;
 
 import com.example.kotsuexample.config.websocket.ChatSessionManager;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.TextMessage;
