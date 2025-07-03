@@ -96,7 +96,6 @@ public class StudyNoteService {
             // 이미지와 썸네일 경로 모두 없으면 디폴트
             thumbnailUrl = "https://kotsubucket.s3.ap-northeast-2.amazonaws.com/user-uploads-prod/study_note_default.jpg";
         } else {
-            // 경로가 전달되면 그것을 사용
             thumbnailUrl = dto.getThumbnail();
         }
 
