@@ -47,6 +47,8 @@ public class StudyRoomService {
             String fileName = "studyroom-" + UUID.randomUUID() + ".jpg";
             String uploadPath = s3UploadProperties.getUploadDir() + fileName;
             imageUrl = s3Uploader.upload(imageFile, uploadPath);
+        } else {
+            imageUrl = "https://kotsubucket.s3.ap-northeast-2.amazonaws.com/user-uploads-prod/default-room.png";
         }
 
         StudyRoom studyRoom = StudyRoom.builder()

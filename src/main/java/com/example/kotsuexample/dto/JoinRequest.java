@@ -41,6 +41,7 @@ public class JoinRequest {
                 .answer(this.answer)
                 .signupType(SignupType.LOCAL)
                 .createdAt(LocalDateTime.now())
+                .profileImage("https://kotsubucket.s3.ap-northeast-2.amazonaws.com/user-uploads-local/default.jpg")
                 .build();
     }
 }
