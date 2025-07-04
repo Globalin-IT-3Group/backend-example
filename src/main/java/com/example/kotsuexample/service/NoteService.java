@@ -21,6 +21,7 @@ public class NoteService {
     private final NoteRepository noteRepository;
     private final S3Uploader s3Uploader;
     private final S3UploadProperties s3UploadProperties;
+    private final static String DEFAULT_NOTE_IMAGE = "https://kotsubucket.s3.ap-northeast-2.amazonaws.com/user-uploads-prod/note_default.jpg";
 
     public List<NoteResponse> getNotes(Integer userId) {
         return noteRepository.findByUserIdOrderByCreatedAtDesc(userId)
@@ -55,8 +56,10 @@ public class NoteService {
             String fileName = "note-" + userId + "-" + UUID.randomUUID() + ".jpg";
             String uploadPath = s3UploadProperties.getUploadDir() + fileName;
             imageUrl = s3Uploader.upload(image, uploadPath);
+        } else if (request.getImageUrl() != null && !request.getImageUrl().isBlank()) {
+            imageUrl = request.getImageUrl(); // URL 직접 사용
         } else {
-            imageUrl = "https://kotsubucket.s3.ap-northeast-2.amazonaws.com/user-uploads-prod/note_default.jpg";
+            imageUrl = DEFAULT_NOTE_IMAGE;
         }
 
         Note note = Note.builder()
@@ -74,17 +77,24 @@ public class NoteService {
                 .filter(n -> n.getUserId().equals(userId))
                 .orElseThrow(() -> new RuntimeException("수정할 노트를 찾을 수 없습니다."));
 
-        String imageUrl = note.getImageUrl();
+        String imageUrl;
 
+        // case 1: MultipartFile로 이미지가 들어온 경우 → 새로 업로드
         if (image != null && !image.isEmpty()) {
             String fileName = "note-" + note.getId() + "-" + UUID.randomUUID() + ".jpg";
             String uploadPath = s3UploadProperties.getUploadDir() + fileName;
             imageUrl = s3Uploader.upload(image, uploadPath);
             note.changeImageUrl(imageUrl);
         }
+        // case 2: image가 없지만 request.getImageUrl()이 있다면 그걸 반영
+        else if (request.getImageUrl() != null && !request.getImageUrl().isBlank()) {
+            imageUrl = request.getImageUrl();
+            note.changeImageUrl(imageUrl);
+        }
 
         note.changeTitle(request.getTitle());
         note.changeContent(request.getContent());
+
         noteRepository.save(note);
     }
 

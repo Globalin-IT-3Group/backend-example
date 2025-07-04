@@ -14,4 +14,5 @@ public class CreateStudyRoomRequest {
     private String notice;
     private Integer maxUserCount;
     private Set<StudyTag> tags;
+    private String imageUrl;
 }

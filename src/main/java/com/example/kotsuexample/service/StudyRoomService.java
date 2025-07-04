@@ -31,6 +31,7 @@ public class StudyRoomService {
     private final ChatRoomRepository chatRoomRepository;
     private final S3Uploader s3Uploader;
     private final S3UploadProperties s3UploadProperties;
+    private final static String DEFAULT_STUDY_ROOM_IMAGE = "https://kotsubucket.s3.ap-northeast-2.amazonaws.com/user-uploads-prod/default-room.png";
 
     // 1. 생성
     @Transactional
@@ -42,13 +43,21 @@ public class StudyRoomService {
             throw new DuplicateException("이미 존재하는 스터디룸 이름입니다.");
         }
 
-        String imageUrl = null;
+        String imageUrl;
+
+        // ✅ 1. MultipartFile 이미지 업로드
         if (imageFile != null && !imageFile.isEmpty()) {
             String fileName = "studyroom-" + UUID.randomUUID() + ".jpg";
             String uploadPath = s3UploadProperties.getUploadDir() + fileName;
             imageUrl = s3Uploader.upload(imageFile, uploadPath);
-        } else {
-            imageUrl = "https://kotsubucket.s3.ap-northeast-2.amazonaws.com/user-uploads-prod/default-room.png";
+        }
+        // ✅ 2. DTO에 URL이 명시된 경우
+        else if (dto.getImageUrl() != null && !dto.getImageUrl().isBlank()) {
+            imageUrl = dto.getImageUrl();
+        }
+        // ✅ 3. 아무것도 없으면 기본 이미지
+        else {
+            imageUrl = DEFAULT_STUDY_ROOM_IMAGE;
         }
 
         StudyRoom studyRoom = StudyRoom.builder()
@@ -62,23 +71,16 @@ public class StudyRoomService {
                 .maxUserCount(dto.getMaxUserCount())
                 .build();
 
-        // 저장 먼저 (ID 생성 및 cascade용)
         studyRoomRepository.save(studyRoom);
 
-        // 리더도 멤버로 등록
         StudyRoomMember member = StudyRoomMember.builder()
                 .studyRoom(studyRoom)
                 .user(user)
                 .joinedAt(LocalDateTime.now())
                 .build();
-
-        // 양방향일 때는 addMember를 통해 컬렉션 양쪽 동기화
         studyRoom.addMember(member);
-
-        // member 저장 (CascadeType.ALL 이면 studyRoom만 저장해도 persist됨. 안전하게 별도 저장)
         studyRoomMemberRepository.save(member);
 
-        // ✅ [추가] 스터디방 생성과 동시에 그룹 ChatRoom 생성
         ChatRoom groupChatRoom = ChatRoom.builder()
                 .type(ChatRoomType.GROUP)
                 .studyRoomId(studyRoom.getId())
@@ -86,7 +88,6 @@ public class StudyRoomService {
                 .build();
         chatRoomRepository.save(groupChatRoom);
 
-        // ✅ [추가] 리더를 그룹 ChatRoom의 멤버로 등록
         ChatRoomMember chatMember = ChatRoomMember.builder()
                 .chatRoomId(groupChatRoom.getId())
                 .userId(user.getId())
@@ -170,12 +171,15 @@ public class StudyRoomService {
             throw new DuplicateException("같은 이름의 스터디방이 존재합니다! 다른 방 이름을 입력해주세요!");
         }
 
-        // ✅ 이미지 업로드 처리 (선택사항)
-        String imageUrl = dto.getImageUrl(); // 기본값: 기존 URL 유지
+        // ✅ 이미지 URL 결정
+        String imageUrl = room.getImageUrl(); // 기존 이미지 유지 기본값
+
         if (imageFile != null && !imageFile.isEmpty()) {
             String fileName = "studyroom-" + room.getId() + "-" + UUID.randomUUID() + ".jpg";
             String uploadPath = s3UploadProperties.getUploadDir() + fileName;
             imageUrl = s3Uploader.upload(imageFile, uploadPath);
+        } else if (dto.getImageUrl() != null && !dto.getImageUrl().isBlank()) {
+            imageUrl = dto.getImageUrl(); // 새 이미지 URL 사용
         }
 
         // ✅ 실제 엔티티 업데이트

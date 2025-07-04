@@ -28,6 +28,7 @@ public class StudyNoteService {
     private final StudyNoteCommentService commentService;
     private final S3UploadProperties s3UploadProperties;
     private final S3Uploader s3Uploader;
+    private final static String DEFAULT_STUDY_NOTE_IMAGE = "https://kotsubucket.s3.ap-northeast-2.amazonaws.com/user-uploads-prod/study_note_default.jpg";
 
     // 노트 목록 조회 (스터디방 단위)
     @Transactional(readOnly = true)
@@ -55,12 +56,18 @@ public class StudyNoteService {
         StudyRoom room = studyRoomService.getStudyRoomEntity(dto.getStudyRoomId());
 
         String thumbnailUrl;
-        if (image == null || image.isEmpty()) {
-            thumbnailUrl = "https://kotsubucket.s3.ap-northeast-2.amazonaws.com/user-uploads-prod/study_note_default.jpg";
-        } else {
+
+        if (image != null && !image.isEmpty()) {
+            // 이미지 파일 업로드
             String fileName = "study-note-" + userId + "-" + System.currentTimeMillis() + ".jpg";
             String uploadPath = "user-uploads-prod/" + fileName;
             thumbnailUrl = s3Uploader.upload(image, uploadPath);
+        } else if (dto.getThumbnail() != null && !dto.getThumbnail().isBlank()) {
+            // 이미지 URL 직접 사용
+            thumbnailUrl = dto.getThumbnail();
+        } else {
+            // 기본 썸네일 이미지
+            thumbnailUrl = DEFAULT_STUDY_NOTE_IMAGE;
         }
 
         StudyNote note = StudyNote.builder()
@@ -81,18 +88,20 @@ public class StudyNoteService {
     public void updateNote(Integer userId, Integer noteId, StudyNoteUpdateDTO dto, MultipartFile image) {
         StudyNote note = studyNoteRepository.findById(noteId)
                 .orElseThrow(() -> new StudyDataNotFoundException("노트가 조회되지 않습니다."));
-        if (!note.getUser().getId().equals(userId))
-            throw new NoAuthorizationException("수정 권한 없습니다");
 
-        String thumbnailUrl;
+        if (!note.getUser().getId().equals(userId)) {
+            throw new NoAuthorizationException("수정 권한 없습니다");
+        }
+
+        String thumbnailUrl = note.getThumbnail(); // 기존 썸네일
 
         if (image != null && !image.isEmpty()) {
+            // 이미지 새로 업로드
             String fileName = "study-note-" + noteId + "-" + System.currentTimeMillis() + ".jpg";
             String uploadPath = "user-uploads-prod/" + fileName;
             thumbnailUrl = s3Uploader.upload(image, uploadPath);
-        } else if (dto.getThumbnail() == null || dto.getThumbnail().isBlank()) {
-            thumbnailUrl = "https://kotsubucket.s3.ap-northeast-2.amazonaws.com/user-uploads-prod/study_note_default.jpg";
-        } else {
+        } else if (dto.getThumbnail() != null && !dto.getThumbnail().isBlank()) {
+            // URL로 전달된 썸네일 반영
             thumbnailUrl = dto.getThumbnail();
         }
 
