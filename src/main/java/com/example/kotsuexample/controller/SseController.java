@@ -15,7 +15,6 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @RequestMapping("/sse")
 @Slf4j
 public class SseController {
-
     private final SseService sseService;
 
     @GetMapping(value = "/subscribe", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
