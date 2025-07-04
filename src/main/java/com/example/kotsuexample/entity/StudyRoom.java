@@ -25,7 +25,10 @@ public class StudyRoom {
     @Column(nullable = false, unique = true)
     private String name;
 
+    @Lob
     private String rule;
+
+    @Lob
     private String notice;
 
     @Lob

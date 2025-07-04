@@ -26,6 +26,7 @@ public class Comment {
     @JoinColumn(name = "board_id")
     private Board board;
 
+    @Lob
     private String content;
 
     @Column(name = "created_at")
