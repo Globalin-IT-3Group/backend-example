@@ -78,7 +78,6 @@ public class VocabGrammarExcelService {
             }
 
             vocabGrammarRepository.saveAll(list);
-
         } catch (Exception e) {
             throw new RuntimeException(("실패 ㅜㅜ: " + e.getMessage()), e);
         }
